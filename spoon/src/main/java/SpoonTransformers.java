@@ -43,7 +43,8 @@ import java.util.Set;
         Set<CtMethod> set = type.getMethods();
         for(CtMethod m : set){
             System.out.println(m);
-            m.getBody().insertBegin(snippet.clone());
+            if(m.getBody() != null)
+                m.getBody().insertBegin(snippet.clone());
         }
         System.out.println(type);
     }
@@ -110,7 +111,8 @@ import java.util.Set;
     public List<CtExpression<?>> constructArguments(String name) {
         return List.of();
     }
-        public void execute1(String outputPath){
+
+    public void execute1(String outputPath){
         addMethod1("method1","(10,10)");
         writeClass(outputPath);
         reset();
