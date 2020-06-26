@@ -15,7 +15,7 @@ public class Main {
             String inputPath = in + fileName;
             String className = fileName.substring(0,(fileName.length()-5));
             String outputPath;
-            SpoonTransformers transformer = new SpoonTransformers(inputPath,className);
+            Spoon transformer = new Spoon(inputPath,className);
             for(int i = 1; i <= METHODS; i++) {
                 Method method = transformer.getClass().getMethod("execute" + i,String.class);
                 outputPath = args[1] + className + "-" + i + "/" + fileName;

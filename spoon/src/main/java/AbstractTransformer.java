@@ -10,16 +10,19 @@ import java.io.IOException;
 public abstract class AbstractTransformer {
     private CtType originalType;
     protected CtType type;
-    protected CtPackage root;
 
     public AbstractTransformer(String sourcePath, String className){
+        originalType = getType(sourcePath,className);
+        type = originalType.clone();
+    }
+
+    protected CtType getType(String sourcePath,String className){
         Launcher launcher = new Launcher();
         launcher.addInputResource(sourcePath);
         launcher.buildModel();
         CtModel model = launcher.getModel();
-        root = model.getRootPackage();
-        originalType = root.getType(className);
-        type = originalType.clone();
+        CtPackage root = model.getRootPackage();
+        return root.getType(className);
     }
 
     protected void reset(){

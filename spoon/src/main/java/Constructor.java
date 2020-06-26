@@ -1,52 +1,31 @@
-
-import spoon.reflect.code.*;
+import spoon.reflect.code.CtBlock;
+import spoon.reflect.code.CtInvocation;
+import spoon.reflect.code.CtStatement;
 import spoon.reflect.declaration.*;
+import spoon.reflect.factory.CodeFactory;
+import spoon.reflect.factory.Factory;
+import spoon.reflect.factory.MethodFactory;
 import spoon.reflect.reference.CtTypeReference;
 import spoon.support.reflect.code.CtBlockImpl;
+import spoon.support.reflect.declaration.CtClassImpl;
 import spoon.support.reflect.declaration.CtParameterImpl;
 import spoon.support.reflect.reference.CtTypeReferenceImpl;
+
 import java.util.List;
 import java.util.Set;
 
-/**
- * Adds a method call in the beginning of all methods of a class.
- */
- public class SpoonTransformers extends AbstractTransformer {
-    private String className;
-
-    public SpoonTransformers(String sourcePath, String className) {
-        super(sourcePath,className);
-        this.className = className;
+public class Constructor {
+    Factory factory;
+    CtType type;
+    
+    public Constructor(CtType type){
+        this.factory = type.getFactory();
+        this.type = type;
     }
 
-    public void addMethod1(String methodName, String arg) {
-        addCall(methodName,arg);
-        constructMethod1(methodName);
-    }
-
-    public void addMethod2(String methodName, String arg) {
-        addCall(methodName,arg);
-        constructMethod2(methodName);
-    }
-
-    public void addMethod3(String methodName, String arg) {
-        addCall(methodName,arg);
-        constructMethod3(methodName);
-    }
-
-    public void addCall(String methodName, String arg) {
-        String call = methodName + arg;
-        CtCodeSnippetStatement snippet = type.getFactory().createCodeSnippetStatement(call);
-        //List l = type.getMethodsByName("main");
-        //if(!l.isEmpty())
-            //System.out.println(l.get(0));
-        Set<CtMethod> set = type.getMethods();
-        for(CtMethod m : set){
-            System.out.println(m);
-            if(m.getBody() != null)
-                m.getBody().insertBegin(snippet.clone());
-        }
-        System.out.println(type);
+    public Constructor(){
+        this.type = new CtClassImpl();
+        this.factory = type.getFactory();
     }
 
     // int, int -> int
@@ -63,12 +42,21 @@ import java.util.Set;
         List parameters = List.of(param1,param2);
         Set thrownTypes = Set.of();
         String body = "return x+y";
-        CtStatement snippet = type.getFactory().createCodeSnippetStatement(body);
+        CtStatement snippet = factory.createCodeSnippetStatement(body);
         CtBlock block = new CtBlockImpl();
         block.insertEnd(snippet);
-        CtMethod newMethod = type.getFactory().createMethod((CtClass<?>)type,modifiers,intType,
+        CtMethod newMethod = factory.createMethod((CtClass<?>)type,modifiers,intType,
                 name,parameters,thrownTypes,block);
         return newMethod;
+    }
+
+    public CtInvocation constructCall1(String name) {
+        CodeFactory codeFactory = factory.Code();
+        MethodFactory methodFactory = factory.Method();
+        CtMethod method = constructMethod1(name);
+        return codeFactory.createInvocation(factory.createThisAccess(null,true),
+                methodFactory.createReference(method),codeFactory.createLiteral(10),
+                codeFactory.createLiteral(10));
     }
 
     // -> boolean
@@ -79,10 +67,10 @@ import java.util.Set;
         List parameters = List.of();
         Set thrownTypes = Set.of();
         String body = "return true";
-        CtStatement snippet = type.getFactory().createCodeSnippetStatement(body);
+        CtStatement snippet = factory.createCodeSnippetStatement(body);
         CtBlock block = new CtBlockImpl();
         block.insertEnd(snippet);
-        CtMethod newMethod = type.getFactory().createMethod((CtClass<?>)type,modifiers,voidType,
+        CtMethod newMethod = factory.createMethod((CtClass<?>)type,modifiers,voidType,
                 name,parameters,thrownTypes,block);
         return newMethod;
     }
@@ -100,21 +88,11 @@ import java.util.Set;
         List parameters = List.of(param1);
         Set thrownTypes = Set.of();
         String body = "System.out.println(\"The char is: \" + x)";
-        CtStatement snippet = type.getFactory().createCodeSnippetStatement(body);
+        CtStatement snippet = factory.createCodeSnippetStatement(body);
         CtBlock block = new CtBlockImpl();
         block.insertEnd(snippet);
-        CtMethod newMethod = type.getFactory().createMethod((CtClass<?>)type,modifiers,voidType,
+        CtMethod newMethod = factory.createMethod((CtClass<?>)type,modifiers,voidType,
                 name,parameters,thrownTypes,block);
         return newMethod;
-    }
-
-    public List<CtExpression<?>> constructArguments(String name) {
-        return List.of();
-    }
-
-    public void execute1(String outputPath){
-        addMethod1("method1","(10,10)");
-        writeClass(outputPath);
-        reset();
     }
 }
