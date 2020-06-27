@@ -7,12 +7,14 @@ import spoon.reflect.declaration.*;
 import spoon.reflect.factory.Factory;
 import spoon.reflect.reference.CtExecutableReference;
 import spoon.reflect.reference.CtVariableReference;
+import spoon.support.reflect.code.CtInvocationImpl;
 
 import javax.tools.JavaCompiler;
 import javax.tools.ToolProvider;
 import java.io.*;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class Transformer extends AbstractTransformer {
 
@@ -90,7 +92,12 @@ public class Transformer extends AbstractTransformer {
         }
 
         // get description
-        String desc = "";
+        List<CtInvocation> invList = methodCall.filterChildren((CtInvocation inv)->
+                inv.getExecutable().getSimpleName().equals("visitMethodInsn")).list();
+        List descList = (List) invList.get(0).getArguments().stream()
+                .filter(e->e.toString().contains("(")).collect(Collectors.toList());
+        String desc = descList.get(0).toString();
+        desc = desc.substring(1,desc.length()-1);
 
         // replace literals
         Factory factory = type.getFactory();
@@ -119,11 +126,11 @@ public class Transformer extends AbstractTransformer {
 
         // write classes
         type = trans;
-        writeClass(fileOut + "ASMTransformer" + outputName);
+        writeClass(fileOut + "/asm/ASMTransformer" + outputName + ".java");
         type = clAdapter;
-        writeClass(fileOut + "ClassAdapter" + outputName);
+        writeClass(fileOut + "/asm/ClassAdapter" + outputName + ".java");
         type = mtAdapter;
-        writeClass(fileOut + "MethodAdapter" + outputName);
+        writeClass(fileOut + "/asm/MethodAdapter" + outputName + ".java");
     }
 
     void addEnd(CtMethod method) {}
