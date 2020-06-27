@@ -1,3 +1,4 @@
+import spoon.Launcher;
 import spoon.reflect.code.CtBlock;
 import spoon.reflect.code.CtInvocation;
 import spoon.reflect.code.CtStatement;
@@ -24,7 +25,7 @@ public class Constructor {
     }
 
     public Constructor(){
-        this.type = new CtClassImpl();
+        type = Launcher.parseClass("class A {}");
         this.factory = type.getFactory();
     }
 
@@ -54,7 +55,7 @@ public class Constructor {
         CodeFactory codeFactory = factory.Code();
         MethodFactory methodFactory = factory.Method();
         CtMethod method = constructMethod1(name);
-        return codeFactory.createInvocation(factory.createThisAccess(null,true),
+        return codeFactory.createInvocation(factory.createThisAccess(type.getReference(),true),
                 methodFactory.createReference(method),codeFactory.createLiteral(10),
                 codeFactory.createLiteral(10));
     }

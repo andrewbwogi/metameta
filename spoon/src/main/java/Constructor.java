@@ -1,3 +1,4 @@
+import spoon.Launcher;
 import spoon.reflect.code.CtBlock;
 import spoon.reflect.code.CtInvocation;
 import spoon.reflect.code.CtStatement;
@@ -7,7 +8,6 @@ import spoon.reflect.factory.Factory;
 import spoon.reflect.factory.MethodFactory;
 import spoon.reflect.reference.CtTypeReference;
 import spoon.support.reflect.code.CtBlockImpl;
-import spoon.support.reflect.declaration.CtClassImpl;
 import spoon.support.reflect.declaration.CtParameterImpl;
 import spoon.support.reflect.reference.CtTypeReferenceImpl;
 
@@ -17,14 +17,14 @@ import java.util.Set;
 public class Constructor {
     Factory factory;
     CtType type;
-    
+
     public Constructor(CtType type){
         this.factory = type.getFactory();
         this.type = type;
     }
 
     public Constructor(){
-        this.type = new CtClassImpl();
+        type = Launcher.parseClass("class A {}");
         this.factory = type.getFactory();
     }
 
@@ -54,7 +54,7 @@ public class Constructor {
         CodeFactory codeFactory = factory.Code();
         MethodFactory methodFactory = factory.Method();
         CtMethod method = constructMethod1(name);
-        return codeFactory.createInvocation(factory.createThisAccess(null,true),
+        return codeFactory.createInvocation(factory.createThisAccess(type.getReference(),true),
                 methodFactory.createReference(method),codeFactory.createLiteral(10),
                 codeFactory.createLiteral(10));
     }
