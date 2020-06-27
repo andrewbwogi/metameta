@@ -8,6 +8,7 @@ import spoon.reflect.factory.Factory;
 import spoon.reflect.reference.CtExecutableReference;
 import spoon.reflect.reference.CtVariableReference;
 import spoon.support.reflect.code.CtInvocationImpl;
+import spoon.support.reflect.declaration.CtMethodImpl;
 
 import javax.tools.JavaCompiler;
 import javax.tools.ToolProvider;
@@ -22,7 +23,11 @@ public class Transformer extends AbstractTransformer {
         super(new File("src/main/resources").getAbsolutePath() + "/BaseClass.java","BaseClass");
     }
 
-    void addBegin(CtInvocation call,CtMethod method, String outputName,String fileOut, String modifiedMethod) throws Exception {
+    void addBegin(CtInvocation call, String outputName, String modifiedMethod) throws Exception {
+        CtExecutable executable = call.getExecutable().getDeclaration();
+        if(executable.getClass() != CtMethodImpl.class)
+            throw new Exception();
+        CtMethod method = (CtMethod) executable;
 
         // get and rename baseclasses
         String sourcePath = new File("src/main/resources/ASMTransformer.java").getAbsolutePath();
@@ -49,21 +54,19 @@ public class Transformer extends AbstractTransformer {
         set = dummy.getConstructors();
         for(CtConstructor c : set)
             c.getBody().insertBegin(call.clone());
-        //CtExecutableReference ex = call.getExecutable();
-        //CtExecutable e = ex.getDeclaration();
         dummy.addMethod(method);
 
         // write type
         CtType baseClass = type;
         type = dummy;
-        File toCompile = new File("src/main/resources/Dummy/Empty.java");
+        File toCompile = new File("src/main/resources/dummy/Empty.java");
         writeClass(toCompile.getAbsolutePath());
         type = baseClass;
 
         // compile type
         JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
         compiler.run(null, null, null, toCompile.getPath());
-        File classFile = new File("src/main/resources/Dummy/Empty.class");
+        File classFile = new File("src/main/resources/dummy/Empty.class");
         FileInputStream is = new FileInputStream(classFile);
 
         // run asmifier and retrieve output
@@ -125,12 +128,13 @@ public class Transformer extends AbstractTransformer {
         defCall.get(0).setBody(methodCall);
 
         // write classes
+        String resources = new File("src/main/resources/").getAbsolutePath();
         type = trans;
-        writeClass(fileOut + "/asm/ASMTransformer" + outputName + ".java");
+        writeClass(resources + "/asm/ASMTransformer" + outputName + ".java");
         type = clAdapter;
-        writeClass(fileOut + "/asm/ClassAdapter" + outputName + ".java");
+        writeClass(resources + "/asm/ClassAdapter" + outputName + ".java");
         type = mtAdapter;
-        writeClass(fileOut + "/asm/MethodAdapter" + outputName + ".java");
+        writeClass(resources + "/asm/MethodAdapter" + outputName + ".java");
     }
 
     void addEnd(CtMethod method) {}
@@ -152,9 +156,8 @@ public class Transformer extends AbstractTransformer {
     }
 
     public static void main(final String args[]) throws Exception {
-        String resources = new File("src/main/resources/").getAbsolutePath();
         Transformer transformer = new Transformer();
         Constructor c = new Constructor();
-        transformer.addBegin(c.constructCall1("newMethod"),c.constructMethod1("newMethod"),"1",resources,"method");
+        transformer.addBegin(c.constructCall1("newMethod"),"1","method");
     }
     }
