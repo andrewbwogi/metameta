@@ -3,6 +3,17 @@ import os
 from subprocess import check_output
 import re 
 
+def make_folders():
+    cmd = 'mkdir ' + './b'
+    proc = subprocess.Popen(cmd, shell=True)
+    cmd = 'mkdir ' + './y'
+    proc = subprocess.Popen(cmd, shell=True)
+    cmd = 'mkdir ' + './x'
+    proc = subprocess.Popen(cmd, shell=True)
+    cmd = 'mkdir ' + './c'
+    proc = subprocess.Popen(cmd, shell=True)
+    proc.communicate()
+                
 def comp(directory):
     cmd = 'mvn -f ' + directory + ' compile' 
     proc = subprocess.Popen(cmd, shell=True)
@@ -12,7 +23,6 @@ def jcomp(directory):
     for folder in os.listdir(directory):
     	for filename in os.listdir(directory + folder):
             cmd = 'javac ' + directory + folder + '/' + filename 
-            print(cmd)
             proc = subprocess.Popen(cmd, shell=True)
             proc.communicate()
     
@@ -33,7 +43,6 @@ def move2(fr,to):
                 proc = subprocess.Popen(cmd, shell=True)
                 proc.communicate()
                 cmd = 'mv ' + fr + folder + '/' + filename + ' ' + to + folder + '/'
-                print(cmd)
                 proc = subprocess.Popen(cmd, shell=True)
                 proc.communicate()
             else:
@@ -60,6 +69,7 @@ def diff():
     for key, value in results.items():
         print(key, value)
 
+make_folders()
 comp("./a/")
 comp("./spoon/")
 move("./a/target/classes/","./x/")
