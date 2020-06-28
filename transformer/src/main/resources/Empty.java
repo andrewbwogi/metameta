@@ -1,5 +1,3 @@
 public class Empty {
-    public Empty(){
-
-    }
+    public Empty(){}
 }

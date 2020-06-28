@@ -1,7 +1,9 @@
+import org.apache.commons.io.FileUtils;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.util.ASMifier;
 import org.objectweb.asm.util.TraceClassVisitor;
 import spoon.Launcher;
+import spoon.reflect.CtModel;
 import spoon.reflect.code.*;
 import spoon.reflect.declaration.*;
 import spoon.reflect.factory.Factory;
@@ -17,13 +19,11 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class Transformer extends AbstractTransformer {
-    //String resources = Transformer.class.getClassLoader().getResource("").getPath();
-    String resources = "./transformer/src/main/resources/";
+public class Transformer {
+    // String resources = Transformer.class.getClassLoader().getResource("").getPath();
+    private String resources = "./transformer/src/main/resources/";
 
     Transformer() {
-        //super(Transformer.class.getClassLoader().getResource("").getPath() + "/BaseClass.java","BaseClass");
-        super("./transformer/src/main/resources/" + "/BaseClass.java","BaseClass");
     }
 
     void addBegin(CtInvocation call, String outputName, String modifiedMethod) throws Exception {
@@ -62,11 +62,8 @@ public class Transformer extends AbstractTransformer {
         dummy.addMethod(method);
 
         // write type
-        CtType baseClass = type;
-        type = dummy;
         String toCompile = resources + "dummy/Empty.java";
-        writeClass(toCompile);
-        type = baseClass;
+        writeClass(dummy, toCompile);
 
         // compile type
         JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
@@ -78,19 +75,19 @@ public class Transformer extends AbstractTransformer {
         CtClass asmified = Launcher.parseClass(toASM(is));
 
         // get the second block
-        List<CtBlock> list = asmified.filterChildren((CtBlock block)->true).list();
-        CtBlock methodDefinition = list.get(list.size()-1);
+        List<CtBlock> blockList = asmified.filterChildren((CtBlock block)->true).list();
+        CtBlock methodDefinition = blockList.get(blockList.size()-1);
 
         // remove first assignment statement
         CtStatement assign = methodDefinition.getStatement(0);
         methodDefinition.removeStatement(assign);
 
         // set definition
-        List<CtMethod> defMethod = clAdapter.getMethodsByName("definition");
-        defMethod.get(0).setBody(methodDefinition);
+        List<CtMethod> methodDef = clAdapter.getMethodsByName("definition");
+        methodDef.get(0).setBody(methodDefinition);
 
         // get first block
-        CtBlock methodCall = list.get(list.size()-2);
+        CtBlock methodCall = blockList.get(blockList.size()-2);
         for(int i = 0;i<10;i++)
             methodCall.removeStatement(methodCall.getStatement(0));
         int sizeCount = methodCall.getStatements().size();
@@ -108,7 +105,7 @@ public class Transformer extends AbstractTransformer {
         desc = desc.substring(1,desc.length()-1);
 
         // replace literals
-        Factory factory = type.getFactory();
+        Factory factory = dummy.getFactory();
         List<CtLiteral> literalList = clAdapter.filterChildren((CtLiteral l)->
                 l.getType().getSimpleName().equals("String") && l.getValue().equals("modifiedMethod")).list();
         literalList.get(0).replace(factory.createLiteral(modifiedMethod));
@@ -139,25 +136,18 @@ public class Transformer extends AbstractTransformer {
         }
 
         // set call
-        List<CtMethod> defCall = mtAdapter.getMethodsByName("call");
-        defCall.get(0).setBody(methodCall);
+        List<CtMethod> callDef = mtAdapter.getMethodsByName("call");
+        callDef.get(0).setBody(methodCall);
 
         // write classes
-        type = trans;
-        writeClass("./asm/src/main/java/ASMTransformer" + outputName + ".java");
-        type = clAdapter;
-        writeClass("./asm/src/main/java/ClassAdapter" + outputName + ".java",getImports());
-        type = mtAdapter;
-        writeClass("./asm/src/main/java/MethodAdapter" + outputName + ".java",getImports());
+        writeClass(trans,"./asm/src/main/java/ASMTransformer" + outputName + ".java");
+        writeClass(clAdapter,"./asm/src/main/java/ClassAdapter" + outputName + ".java",getImports());
+        writeClass(mtAdapter,"./asm/src/main/java/MethodAdapter" + outputName + ".java",getImports());
     }
 
     void addEnd(CtMethod method) {}
 
     void addField(CtField field) {}
-
-    CtType getASMProgram() {
-        return type;
-    }
 
     private String getImports(){
         return "import org.objectweb.asm.Opcodes;\n" +
@@ -173,9 +163,33 @@ public class Transformer extends AbstractTransformer {
         return sw.toString();
     }
 
+    private CtType getType(String sourcePath,String className){
+        Launcher launcher = new Launcher();
+        launcher.addInputResource(sourcePath);
+        launcher.buildModel();
+        CtModel model = launcher.getModel();
+        CtPackage root = model.getRootPackage();
+        return root.getType(className);
+    }
+
+    protected void writeClass(CtType type, String destinationPath) {
+        writeClass(type, destinationPath,"");
+    }
+
+    protected void writeClass(CtType type, String destinationPath, String imports) {
+        try {
+            File file = new File(destinationPath);
+            file.getParentFile().mkdirs();
+            FileUtils.writeByteArrayToFile(file, (imports + type.toString()).getBytes());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     public static void main(final String args[]) throws Exception {
         Transformer transformer = new Transformer();
         Constructor c = new Constructor();
+        System.out.println(c.type);
         transformer.addBegin(c.constructCall1("newMethod"),"1","method");
     }
     }

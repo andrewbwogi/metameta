@@ -4,10 +4,6 @@ target/
 b/
 c/
 y/
-X/
-!b/.b
-!c/.c
-!y/.y
-!x/.x
+x/
 asm/
 !asm/src/main/java/Main.java
