@@ -9,3 +9,5 @@ X/
 !c/.c
 !y/.y
 !x/.x
+asm/
+!asm/src/main/java/Main.java
