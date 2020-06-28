@@ -8,11 +8,13 @@ public class MethodAdapter extends MethodVisitor {
     public MethodAdapter(int api, MethodVisitor mv, String className) {
         super(api, mv);
         this.className = className;
-        this.methodName = methodName;
-        this.desc = desc;
     }
 
-    // add position of call
+    @Override
+    public void visitCode() {
+        mv.visitCode();
+        call();
+    }
 
     public void call() {
         // add call
