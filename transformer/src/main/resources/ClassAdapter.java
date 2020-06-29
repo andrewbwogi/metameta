@@ -20,7 +20,7 @@ public class ClassAdapter extends ClassVisitor {
     @Override
     public MethodVisitor visitMethod(int a, String name, String d, String s, String[] e) {
         MethodVisitor mv = super.visitMethod(a, name, d, s, e);
-        MethodAdapter1 ma = new MethodAdapter1(Opcodes.ASM5, mv, className);
+        MethodAdapter ma = new MethodAdapter(Opcodes.ASM5, mv, className);
         if (name.equals(modifiedMethod)) {
             return ma;
         }

@@ -8,6 +8,7 @@ import spoon.reflect.code.*;
 import spoon.reflect.declaration.*;
 import spoon.reflect.factory.Factory;
 import spoon.reflect.reference.CtExecutableReference;
+import spoon.reflect.reference.CtTypeReference;
 import spoon.reflect.reference.CtVariableReference;
 import spoon.support.reflect.code.CtInvocationImpl;
 import spoon.support.reflect.declaration.CtMethodImpl;
@@ -20,13 +21,21 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public class Transformer {
-    // String resources = Transformer.class.getClassLoader().getResource("").getPath();
+    //String resources = Transformer.class.getClassLoader().getResource("").getPath();
     private String resources = "./transformer/src/main/resources/";
 
     Transformer() {
     }
 
     void addBegin(CtInvocation call, String outputName, String modifiedMethod) throws Exception {
+        add(call,outputName,modifiedMethod,true);
+    }
+
+    void addEnd(CtInvocation call, String outputName, String modifiedMethod) throws Exception {
+        add(call,outputName,modifiedMethod,false);
+    }
+
+    void add(CtInvocation call, String outputName, String modifiedMethod, boolean begin) throws Exception {
 
         // get method from invocation
         CtExecutable executable = call.getExecutable().getDeclaration();
@@ -44,12 +53,23 @@ public class Transformer {
         Set<CtConstructor> set = clAdapter.getConstructors();
         for(CtConstructor c : set)
             c.setSimpleName(clAdapter.getSimpleName()+outputName);
-        sourcePath = resources + "MethodAdapterBegin.java";
+        if(begin)
+            sourcePath = resources + "MethodAdapterBegin.java";
+        else
+            sourcePath = resources + "MethodAdapterEnd.java";
         CtClass mtAdapter = (CtClass) getType(sourcePath,"MethodAdapter");
         mtAdapter.setSimpleName(mtAdapter.getSimpleName()+outputName);
         set = mtAdapter.getConstructors();
         for(CtConstructor c : set)
             c.setSimpleName(mtAdapter.getSimpleName()+outputName);
+
+        // modify type names
+        List<CtTypeReference> typeList = clAdapter.filterChildren((CtTypeReference t)->t.getSimpleName().equals("MethodAdapter")).list();
+        for(CtTypeReference r : typeList)
+            r.setSimpleName(r.getSimpleName() + outputName);
+        typeList = trans.filterChildren((CtTypeReference t)->t.getSimpleName().equals("ClassAdapter")).list();
+        for(CtTypeReference r : typeList)
+            r.setSimpleName(r.getSimpleName() + outputName);
 
         // create dummy type
         sourcePath = resources + "Empty.java";
@@ -145,8 +165,6 @@ public class Transformer {
         writeClass(mtAdapter,"./asm/src/main/java/MethodAdapter" + outputName + ".java",getImports());
     }
 
-    void addEnd(CtMethod method) {}
-
     void addField(CtField field) {}
 
     private String getImports(){
@@ -189,7 +207,6 @@ public class Transformer {
     public static void main(final String args[]) throws Exception {
         Transformer transformer = new Transformer();
         Constructor c = new Constructor();
-        System.out.println(c.type);
-        transformer.addBegin(c.constructCall1("newMethod"),"1","method");
+        transformer.addEnd(c.constructCall1("newMethod"),"Begin1","method");
     }
     }

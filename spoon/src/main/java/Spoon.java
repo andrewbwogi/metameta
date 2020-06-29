@@ -3,6 +3,7 @@ import spoon.Launcher;
 import spoon.reflect.CtModel;
 import spoon.reflect.code.*;
 import spoon.reflect.declaration.*;
+import spoon.support.reflect.code.CtReturnImpl;
 
 import java.io.File;
 import java.io.IOException;
@@ -11,7 +12,7 @@ import java.util.Set;
 /**
  * Adds a method call in the beginning of all methods of a class.
  */
- public class Spoon {
+public class Spoon {
     private Constructor constructor;
     private CtType originalType;
     protected CtType type;
@@ -22,33 +23,39 @@ import java.util.Set;
         this.constructor = new Constructor(type);
     }
 
-    public void execute1(String outputPath) {
-        execute(constructor.constructCall1("newMethod"),outputPath,"method");
+    public void addBegin1(String outputPath) {
+        addCallBegin(constructor.constructCall1("newMethod"),outputPath,"method");
     }
 
-    public void execute2(String methodName, String arg) {
-        constructor.constructMethod2(methodName);
+    public void addEnd1(String outputPath) {
+        addCallEnd(constructor.constructCall1("newMethod"),outputPath,"method");
     }
 
-    public void execute3(String methodName, String arg) {
-        constructor.constructMethod3(methodName);
-    }
-
-    public void execute(CtInvocation call,String outputPath,String modifiedMethod) {
-        addCall(call,modifiedMethod);
-        writeClass(outputPath);
-        reset();
-    }
-
-    public void addCall(CtInvocation call,String modifiedMethod) {
+    private void addCallBegin(CtInvocation call,String outputPath,String modifiedMethod) {
         Set<CtMethod> set = type.getMethods();
         for (CtMethod m : set) {
             if (m.getBody() != null && m.getSimpleName().equals(modifiedMethod))
                 m.getBody().insertBegin(call.clone());
         }
+        writeClass(outputPath);
+        reset();
     }
 
-    protected CtType readClass(String sourcePath,String className){
+    private void addCallEnd(CtInvocation call,String outputPath,String modifiedMethod) {
+        Set<CtMethod> set = type.getMethods();
+        for (CtMethod m : set) {
+            if (m.getBody() != null && m.getSimpleName().equals(modifiedMethod)) {
+                if(m.getBody().getLastStatement().getClass() != CtReturnImpl.class)
+                    m.getBody().insertEnd(call.clone());
+                else
+                    m.getBody().getLastStatement().insertBefore(call.clone());
+            }
+        }
+        writeClass(outputPath);
+        reset();
+    }
+
+    private CtType readClass(String sourcePath,String className){
         Launcher launcher = new Launcher();
         launcher.addInputResource(sourcePath);
         launcher.buildModel();
@@ -57,7 +64,7 @@ import java.util.Set;
         return root.getType(className);
     }
 
-    protected void writeClass(String destinationPath) {
+    private void writeClass(String destinationPath) {
         try {
             File file = new File(destinationPath);
             file.getParentFile().mkdirs();
@@ -67,8 +74,9 @@ import java.util.Set;
         }
     }
 
-    protected void reset(){
+    private void reset(){
         type = originalType.clone();
+        this.constructor = new Constructor(type);
     }
 
 }

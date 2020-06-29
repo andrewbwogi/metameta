@@ -17,9 +17,14 @@ public class Main {
             String className = fileName.substring(0,(fileName.length()-6));
             String outputPath;
             for (int i = 1; i <= TRANSFORMERS; i++) {
-                Object object = Class.forName("ASMTransformer" + i).newInstance();
+                Object object = Class.forName("ASMTransformerBegin" + i).newInstance();
                 Method method = object.getClass().getMethod("execute",String.class,String.class);
-                outputPath = out + className + "-" + i + "/" + fileName;
+                outputPath = out + className + "-Begin" + i + "/" + fileName;
+                method.invoke(object,inputPath,outputPath);
+
+                object = Class.forName("ASMTransformerEnd" + i).newInstance();
+                method = object.getClass().getMethod("execute",String.class,String.class);
+                outputPath = out + className + "-End" + i + "/" + fileName;
                 method.invoke(object,inputPath,outputPath);
             }
         }

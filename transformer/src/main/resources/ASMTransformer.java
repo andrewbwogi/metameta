@@ -16,7 +16,7 @@ public class ASMTransformer {
         ClassReader cr = new ClassReader(is);
         String className = cr.getClassName();
         ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
-        ClassAdapter1 ca = new ClassAdapter1(Opcodes.ASM6,cw,className);
+        ClassAdapter ca = new ClassAdapter(Opcodes.ASM6,cw,className);
         cr.accept(ca, 0);
 
         // output

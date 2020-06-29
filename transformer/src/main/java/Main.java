@@ -11,7 +11,8 @@ public class Main {
         for (int i = 1; i <= INVOCATIONS; i++) {
             Method method = constructor.getClass().getMethod("constructCall" + i, String.class);
             CtInvocation inv = (CtInvocation) method.invoke(constructor, "newMethod");
-            transformer.addBegin(inv, "" + i, "method");
+            transformer.addBegin(inv, "Begin" + i, "method");
+            transformer.addEnd(inv, "End" + i, "method");
         }
     }
 }
