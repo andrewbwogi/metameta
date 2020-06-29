@@ -3,7 +3,7 @@ import spoon.reflect.code.CtInvocation;
 import java.lang.reflect.Method;
 
 public class Main {
-    final static int INVOCATIONS = 1;
+    final static int INVOCATIONS = 3;
 
     public static void main(String[] args) throws Exception {
         Constructor constructor = new Constructor();

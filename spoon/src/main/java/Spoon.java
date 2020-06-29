@@ -7,6 +7,7 @@ import spoon.support.reflect.code.CtReturnImpl;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.util.Set;
 
 /**
@@ -29,6 +30,28 @@ public class Spoon {
 
     public void addEnd1(String outputPath) {
         addCallEnd(constructor.constructCall1("newMethod"),outputPath,"method");
+    }
+
+    public void addBegin(String outputPath, Integer methodKind) {
+        CtInvocation inv = null;
+        try {
+            Method method = constructor.getClass().getMethod("constructCall" + methodKind, String.class);
+            inv = (CtInvocation) method.invoke(constructor, "newMethod");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        addCallBegin(inv,outputPath,"method");
+    }
+
+    public void addEnd(String outputPath, Integer methodKind) {
+        CtInvocation inv = null;
+        try {
+            Method method = constructor.getClass().getMethod("constructCall" + methodKind, String.class);
+            inv = (CtInvocation) method.invoke(constructor, "newMethod");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        addCallEnd(inv,outputPath,"method");
     }
 
     private void addCallBegin(CtInvocation call,String outputPath,String modifiedMethod) {

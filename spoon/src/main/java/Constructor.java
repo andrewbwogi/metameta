@@ -17,15 +17,21 @@ import java.util.Set;
 public class Constructor {
     Factory factory;
     CtType type;
+    CodeFactory codeFactory;
+    MethodFactory methodFactory;
 
     public Constructor(CtType type){
         this.factory = type.getFactory();
         this.type = type;
+        this.codeFactory = factory.Code();
+        this.methodFactory = factory.Method();
     }
 
     public Constructor(){
         type = Launcher.parseClass("class A {}");
         this.factory = type.getFactory();
+        this.codeFactory = factory.Code();
+        this.methodFactory = factory.Method();
     }
 
     // int, int -> int
@@ -51,8 +57,6 @@ public class Constructor {
     }
 
     public CtInvocation constructCall1(String name) {
-        CodeFactory codeFactory = factory.Code();
-        MethodFactory methodFactory = factory.Method();
         CtMethod method = constructMethod1(name);
         return codeFactory.createInvocation(factory.createThisAccess(type.getReference(),true),
                 methodFactory.createReference(method),codeFactory.createLiteral(10),
@@ -75,6 +79,12 @@ public class Constructor {
         return newMethod;
     }
 
+    public CtInvocation constructCall2(String name) {
+        CtMethod method = constructMethod2(name);
+        return codeFactory.createInvocation(factory.createThisAccess(type.getReference(),true),
+                methodFactory.createReference(method));
+    }
+
     // char ->
     public CtMethod constructMethod3(String name) {
         Set<ModifierKind> modifiers = Set.of(ModifierKind.PUBLIC);
@@ -94,5 +104,11 @@ public class Constructor {
         CtMethod newMethod = factory.createMethod((CtClass<?>)type,modifiers,voidType,
                 name,parameters,thrownTypes,block);
         return newMethod;
+    }
+
+    public CtInvocation constructCall3(String name) {
+        CtMethod method = constructMethod3(name);
+        return codeFactory.createInvocation(factory.createThisAccess(type.getReference(),true),
+                methodFactory.createReference(method),codeFactory.createLiteral('c'));
     }
 }

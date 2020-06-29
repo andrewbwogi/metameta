@@ -5,7 +5,7 @@ import java.lang.reflect.Method;
 import java.util.Iterator;
 
 public class Main {
-    final static int TRANSFORMERS = 1;
+    final static int TRANSFORMERS = 3;
 
     public static void main(String[] args) throws Exception {
         String in = args[0];
