@@ -3,6 +3,7 @@ import spoon.Launcher;
 import spoon.reflect.CtModel;
 import spoon.reflect.code.*;
 import spoon.reflect.declaration.*;
+import spoon.reflect.factory.CodeFactory;
 import spoon.support.reflect.code.CtReturnImpl;
 
 import java.io.File;
@@ -22,14 +23,6 @@ public class Spoon {
         originalType = readClass(sourcePath,className);
         type = originalType.clone();
         this.constructor = new Constructor(type);
-    }
-
-    public void addBegin1(String outputPath) {
-        addCallBegin(constructor.constructCall1("newMethod"),outputPath,"method");
-    }
-
-    public void addEnd1(String outputPath) {
-        addCallEnd(constructor.constructCall1("newMethod"),outputPath,"method");
     }
 
     public void addBegin(String outputPath, Integer methodKind) {
@@ -68,10 +61,27 @@ public class Spoon {
         Set<CtMethod> set = type.getMethods();
         for (CtMethod m : set) {
             if (m.getBody() != null && m.getSimpleName().equals(modifiedMethod)) {
-                if(m.getBody().getLastStatement().getClass() != CtReturnImpl.class)
-                    m.getBody().insertEnd(call.clone());
-                else
-                    m.getBody().getLastStatement().insertBefore(call.clone());
+                if(m.getBody().getLastStatement().getClass() == CtReturnImpl.class) {
+                    CtReturn ret = m.getBody().getLastStatement();
+                    CtExpression retExpr = ret.getReturnedExpression();
+
+                    // compare types
+                    if(call.getType().getSimpleName().equals(m.getType().getSimpleName())){
+
+                        // insert new local variable
+                        CodeFactory codeFactory = type.getFactory().Code();
+                        CtLocalVariable var = codeFactory.createLocalVariable(retExpr.getType(),"newLocal",retExpr);
+                        ret.insertBefore(var);
+
+                        // replace return expression
+                        ret.setReturnedExpression(call.clone());
+                    }
+                }
+                else{
+                    if(call.getType().getSimpleName().equals(m.getType().getSimpleName()))
+                        m.getBody().insertEnd(call.clone());
+
+                }
             }
         }
         writeClass(outputPath);
@@ -102,4 +112,9 @@ public class Spoon {
         this.constructor = new Constructor(type);
     }
 
+    public static void main(final String args[]) throws Exception {
+        String resources = Spoon.class.getClassLoader().getResource("").getPath();
+        Spoon s = new Spoon(resources+"/A1.java", "A1");
+        s.addEnd(resources+"/mod/A1.java",3);
+    }
 }

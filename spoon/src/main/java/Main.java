@@ -16,7 +16,6 @@ public class Main {
             String className = fileName.substring(0,(fileName.length()-5));
             String outputPath;
             Spoon transformer = new Spoon(inputPath,className);
-            //transformer.addBegin(args[1] + className + "-Begin" + 1 + "/" + fileName, 1);
             for(int i = 1; i <= METHODS; i++) {
 
                 // add method call in the beginning of chosen method

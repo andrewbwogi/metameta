@@ -145,6 +145,14 @@ public class Transformer {
         variableRead.setVariable(variableReference);
         literalList.get(0).replace(variableRead);
 
+        if(!begin && !desc.endsWith("V")) {
+
+            // set the last pop instruction first
+            CtStatement pop = methodCall.getLastStatement();
+            methodCall.removeStatement(pop);
+            methodCall.insertBegin(pop);
+        }
+
         // rename accessed type
         List<CtStatement> stmntList = methodCall.getStatements();
         CtVariableRead variableRead2 = factory.createVariableRead();
@@ -207,6 +215,6 @@ public class Transformer {
     public static void main(final String args[]) throws Exception {
         Transformer transformer = new Transformer();
         Constructor c = new Constructor();
-        transformer.addEnd(c.constructCall1("newMethod"),"Begin1","method");
+        transformer.addEnd(c.constructCall1("newMethod"),"Replace1","method");
     }
     }
