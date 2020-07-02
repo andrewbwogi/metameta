@@ -83,6 +83,7 @@ public class Transformer {
 
         // write type
         String toCompile = resources + "dummy/Empty.java";
+        new File(toCompile).getParentFile().mkdirs();
         writeClass(dummy, toCompile);
 
         // compile type

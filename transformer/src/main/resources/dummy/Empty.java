@@ -1,9 +1,13 @@
 public class Empty {
     public Empty() {
-        newMethod('c');
+        newMethod(100L);
     }
 
-    public void newMethod(char x) {
-        System.out.println("The char is: " + x);
+    public long newMethod(long l) {
+        if (l < 10) {
+            return l;
+        }else {
+            return 0;
+        }
     }
 }

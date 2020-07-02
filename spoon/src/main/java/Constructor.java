@@ -24,6 +24,7 @@ public class Constructor {
     private String resources;
 
     public Constructor(CtType type){
+        this.type = type;
         initFields();
     }
 
