@@ -45,10 +45,10 @@ public class Transformer {
 
         // get and rename baseclasses
         String sourcePath = resources + "ASMTransformer.java";
-        CtClass trans = (CtClass) getType(sourcePath,"ASMTransformer");
+        CtClass trans = (CtClass) Utils.readClass(sourcePath,"ASMTransformer");
         trans.setSimpleName(trans.getSimpleName()+outputName);
         sourcePath = resources + "ClassAdapter.java";
-        CtClass clAdapter = (CtClass) getType(sourcePath,"ClassAdapter");
+        CtClass clAdapter = (CtClass) Utils.readClass(sourcePath,"ClassAdapter");
         clAdapter.setSimpleName(clAdapter.getSimpleName()+outputName);
         Set<CtConstructor> set = clAdapter.getConstructors();
         for(CtConstructor c : set)
@@ -57,7 +57,7 @@ public class Transformer {
             sourcePath = resources + "MethodAdapterBegin.java";
         else
             sourcePath = resources + "MethodAdapterEnd.java";
-        CtClass mtAdapter = (CtClass) getType(sourcePath,"MethodAdapter");
+        CtClass mtAdapter = (CtClass) Utils.readClass(sourcePath,"MethodAdapter");
         mtAdapter.setSimpleName(mtAdapter.getSimpleName()+outputName);
         set = mtAdapter.getConstructors();
         for(CtConstructor c : set)
@@ -73,7 +73,7 @@ public class Transformer {
 
         // create dummy type
         sourcePath = resources + "Empty.java";
-        CtClass dummy = (CtClass) getType(sourcePath,"Empty");
+        CtClass dummy = (CtClass) Utils.readClass(sourcePath,"Empty");
 
         // put method and call into dummy type
         set = dummy.getConstructors();
@@ -84,7 +84,7 @@ public class Transformer {
         // write type
         String toCompile = resources + "dummy/Empty.java";
         new File(toCompile).getParentFile().mkdirs();
-        writeClass(dummy, toCompile);
+        Utils.writeClass(dummy, toCompile);
 
         // compile type
         JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
@@ -169,9 +169,9 @@ public class Transformer {
         callDef.get(0).setBody(methodCall);
 
         // write classes
-        writeClass(trans,"./asm/src/main/java/ASMTransformer" + outputName + ".java");
-        writeClass(clAdapter,"./asm/src/main/java/ClassAdapter" + outputName + ".java",getImports());
-        writeClass(mtAdapter,"./asm/src/main/java/MethodAdapter" + outputName + ".java",getImports());
+        Utils.writeClass(trans,"./asm/src/main/java/ASMTransformer" + outputName + ".java");
+        Utils.writeClass(clAdapter,"./asm/src/main/java/ClassAdapter" + outputName + ".java",getImports());
+        Utils.writeClass(mtAdapter,"./asm/src/main/java/MethodAdapter" + outputName + ".java",getImports());
     }
 
     void addField(CtField field) {}
@@ -190,31 +190,8 @@ public class Transformer {
         return sw.toString();
     }
 
-    private CtType getType(String sourcePath,String className){
-        Launcher launcher = new Launcher();
-        launcher.addInputResource(sourcePath);
-        launcher.buildModel();
-        CtModel model = launcher.getModel();
-        CtPackage root = model.getRootPackage();
-        return root.getType(className);
-    }
-
     public void setResources(String r){
         resources = r;
-    }
-
-    private void writeClass(CtType type, String destinationPath) {
-        writeClass(type, destinationPath,"");
-    }
-
-    private void writeClass(CtType type, String destinationPath, String imports) {
-        try {
-            File file = new File(destinationPath);
-            file.getParentFile().mkdirs();
-            FileUtils.writeByteArrayToFile(file, (imports + type.toString()).getBytes());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
     public static void main(final String args[]) throws Exception {

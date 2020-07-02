@@ -21,7 +21,7 @@ public class Spoon {
     private CtType type;
 
     public Spoon(String sourcePath, String className) {
-        originalType = readClass(sourcePath,className);
+        originalType = Utils.readClass(sourcePath,className);
         type = originalType.clone();
         this.constructor = new Constructor(type);
     }
@@ -51,7 +51,7 @@ public class Spoon {
             if (m.getBody() != null && m.getSimpleName().equals(modifiedMethod))
                 m.getBody().insertBegin(call.clone());
         }
-        writeClass(outputPath);
+        Utils.writeClass(type,outputPath);
         reset();
     }
 
@@ -81,7 +81,7 @@ public class Spoon {
                 }
             }
         }
-        writeClass(outputPath);
+        Utils.writeClass(type,outputPath);
         reset();
     }
 
@@ -92,25 +92,6 @@ public class Spoon {
 
     public void setResources(String r){
         constructor.setResources(r);
-    }
-
-    private CtType readClass(String sourcePath,String className){
-        Launcher launcher = new Launcher();
-        launcher.addInputResource(sourcePath);
-        launcher.buildModel();
-        CtModel model = launcher.getModel();
-        CtPackage root = model.getRootPackage();
-        return root.getType(className);
-    }
-
-    private void writeClass(String destinationPath) {
-        try {
-            File file = new File(destinationPath);
-            file.getParentFile().mkdirs();
-            FileUtils.writeByteArrayToFile(file, type.toString().getBytes());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
     public static void main(final String args[]) {

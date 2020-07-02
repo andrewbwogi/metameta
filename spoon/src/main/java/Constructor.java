@@ -119,7 +119,7 @@ public class Constructor {
     }
 
     private CtMethod constructMethodX(String name) {
-        CtType t = readClass(resources+"/Methods.java","Methods");
+        CtType t = Utils.readClass(resources+"/Methods.java","Methods");
         Set<CtMethod> methods = t.getMethods();
         CtMethod retM = null;
         for(CtMethod m : methods){
@@ -139,14 +139,5 @@ public class Constructor {
 
     public void setResources(String r){
         resources = r;
-    }
-
-    private CtType readClass(String sourcePath,String className){
-        Launcher launcher = new Launcher();
-        launcher.addInputResource(sourcePath);
-        launcher.buildModel();
-        CtModel model = launcher.getModel();
-        CtPackage root = model.getRootPackage();
-        return root.getType(className);
     }
 }
