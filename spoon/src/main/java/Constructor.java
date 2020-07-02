@@ -17,39 +17,26 @@ import java.util.List;
 import java.util.Set;
 
 public class Constructor {
-    Factory factory;
-    CtType type;
-    CodeFactory codeFactory;
-    MethodFactory methodFactory;
-    TypeFactory typeFactory;
-    String resources;
+    private Factory factory;
+    private CtType type;
+    private CodeFactory codeFactory;
+    private MethodFactory methodFactory;
+    private String resources;
 
     public Constructor(CtType type){
-        this.factory = type.getFactory();
-        this.type = type;
-        this.codeFactory = factory.Code();
-        this.methodFactory = factory.Method();
-        this.typeFactory = factory.Type();
-        resources = "./spoon/src/main/resources/";
+        initFields();
     }
 
     public Constructor(){
         type = Launcher.parseClass("class A {}");
+        initFields();
+    }
+
+    private void initFields(){
         this.factory = type.getFactory();
         this.codeFactory = factory.Code();
         this.methodFactory = factory.Method();
-        this.typeFactory = factory.Type();
         resources = "./spoon/src/main/resources/";
-    }
-
-    public Constructor(boolean test){
-        this();
-        resources = Constructor.class.getClassLoader().getResource("").getPath();
-    }
-
-    public Constructor(CtType type, boolean test){
-        this(type);
-        resources = Constructor.class.getClassLoader().getResource("").getPath();
     }
 
     // int, int -> int
@@ -147,6 +134,10 @@ public class Constructor {
         method.setSimpleName(name);
         return codeFactory.createInvocation(factory.createThisAccess(type.getReference(),true),
                 methodFactory.createReference(method),codeFactory.createLiteral(100L));
+    }
+
+    public void setResources(String r){
+        resources = r;
     }
 
     private CtType readClass(String sourcePath,String className){

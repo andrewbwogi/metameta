@@ -21,21 +21,21 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public class Transformer {
-    //String resources = Transformer.class.getClassLoader().getResource("").getPath();
-    private String resources = "./transformer/src/main/resources/";
+    private String resources;
 
-    Transformer() {
+    public Transformer() {
+        resources = "./transformer/src/main/resources/";
     }
 
-    void addBegin(CtInvocation call, String outputName, String modifiedMethod) throws Exception {
+    public void addBegin(CtInvocation call, String outputName, String modifiedMethod) throws Exception {
         add(call,outputName,modifiedMethod,true);
     }
 
-    void addEnd(CtInvocation call, String outputName, String modifiedMethod) throws Exception {
+    public void addEnd(CtInvocation call, String outputName, String modifiedMethod) throws Exception {
         add(call,outputName,modifiedMethod,false);
     }
 
-    void add(CtInvocation call, String outputName, String modifiedMethod, boolean begin) throws Exception {
+    private void add(CtInvocation call, String outputName, String modifiedMethod, boolean begin) throws Exception {
 
         // get method from invocation
         CtExecutable executable = call.getExecutable().getDeclaration();
@@ -198,11 +198,15 @@ public class Transformer {
         return root.getType(className);
     }
 
-    protected void writeClass(CtType type, String destinationPath) {
+    public void setResources(String r){
+        resources = r;
+    }
+
+    private void writeClass(CtType type, String destinationPath) {
         writeClass(type, destinationPath,"");
     }
 
-    protected void writeClass(CtType type, String destinationPath, String imports) {
+    private void writeClass(CtType type, String destinationPath, String imports) {
         try {
             File file = new File(destinationPath);
             file.getParentFile().mkdirs();
@@ -214,7 +218,10 @@ public class Transformer {
 
     public static void main(final String args[]) throws Exception {
         Transformer transformer = new Transformer();
+        String resources = Transformer.class.getClassLoader().getResource("").getPath();
+        transformer.setResources(resources);
         Constructor c = new Constructor();
+        c.setResources(resources);
         transformer.addEnd(c.constructCall1("newMethod"),"Replace1","method");
     }
     }

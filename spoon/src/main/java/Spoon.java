@@ -9,6 +9,7 @@ import spoon.support.reflect.code.CtReturnImpl;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.net.URL;
 import java.util.Set;
 
 /**
@@ -17,7 +18,7 @@ import java.util.Set;
 public class Spoon {
     private Constructor constructor;
     private CtType originalType;
-    protected CtType type;
+    private CtType type;
 
     public Spoon(String sourcePath, String className) {
         originalType = readClass(sourcePath,className);
@@ -26,17 +27,14 @@ public class Spoon {
     }
 
     public void addBegin(String outputPath, Integer methodKind) {
-        CtInvocation inv = null;
-        try {
-            Method method = constructor.getClass().getMethod("constructCall" + methodKind, String.class);
-            inv = (CtInvocation) method.invoke(constructor, "newMethod");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        addCallBegin(inv,outputPath,"method");
+        addCallBegin(getInvocation(methodKind),outputPath,"method");
     }
 
     public void addEnd(String outputPath, Integer methodKind) {
+        addCallEnd(getInvocation(methodKind),outputPath,"method");
+    }
+
+    private CtInvocation getInvocation(int methodKind){
         CtInvocation inv = null;
         try {
             Method method = constructor.getClass().getMethod("constructCall" + methodKind, String.class);
@@ -44,7 +42,7 @@ public class Spoon {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        addCallEnd(inv,outputPath,"method");
+        return inv;
     }
 
     private void addCallBegin(CtInvocation call,String outputPath,String modifiedMethod) {
@@ -80,12 +78,20 @@ public class Spoon {
                 else{
                     if(call.getType().getSimpleName().equals(m.getType().getSimpleName()))
                         m.getBody().insertEnd(call.clone());
-
                 }
             }
         }
         writeClass(outputPath);
         reset();
+    }
+
+    private void reset(){
+        type = originalType.clone();
+        this.constructor = new Constructor(type);
+    }
+
+    public void setResources(String r){
+        constructor.setResources(r);
     }
 
     private CtType readClass(String sourcePath,String className){
@@ -107,14 +113,10 @@ public class Spoon {
         }
     }
 
-    private void reset(){
-        type = originalType.clone();
-        this.constructor = new Constructor(type);
-    }
-
-    public static void main(final String args[]) throws Exception {
+    public static void main(final String args[]) {
         String resources = Spoon.class.getClassLoader().getResource("").getPath();
         Spoon s = new Spoon(resources+"/A1.java", "A1");
-        s.addEnd(resources+"/mod/A1.java",3);
+        s.setResources(resources);
+        s.addEnd(resources+"/mod/A1.java",4);
     }
 }
