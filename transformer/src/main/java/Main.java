@@ -3,9 +3,10 @@ import spoon.reflect.code.CtInvocation;
 import java.lang.reflect.Method;
 
 public class Main {
-    final static int INVOCATIONS = 3;
+    static int INVOCATIONS;
 
     public static void main(String[] args) throws Exception {
+        INVOCATIONS = Integer.parseInt(args[2]);
         Constructor constructor = new Constructor();
         Transformer transformer = new Transformer();
         for (int i = 1; i <= INVOCATIONS; i++) {

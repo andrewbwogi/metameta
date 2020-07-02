@@ -48,8 +48,8 @@ def move2(fr,to):
             else:
                 continue
 
-def run(run_dir, arg_dir, out_dir):
-    args = os.getcwd() + arg_dir + " " + os.getcwd() + out_dir
+def run(run_dir, arg_dir, out_dir, spoon_programs):
+    args = os.getcwd() + arg_dir + " " + os.getcwd() + out_dir + " " + spoon_programs
     cmd = 'mvn -f ' + run_dir\
     + ' exec:java -Dexec.mainClass="Main" -Dexec.args="' + args + '"'
     proc = subprocess.Popen(cmd, shell=True)
@@ -69,15 +69,16 @@ def diff():
     for key, value in results.items():
         print(key, value)
 
+spoon_programs = "4"
 make_folders()
 comp("./a/")
 comp("./spoon/")
 move("./a/target/classes/","./x/")
-run("./spoon/","/a/src/main/java/","/b/")
+run("./spoon/","/a/src/main/java/","/b/",spoon_programs)
 jcomp("./b/")
 move2("./b/","./c/")
 comp("./transformer/")
-run("./transformer/","","")
+run("./transformer/","","",spoon_programs)
 comp("./asm/")
-run("./asm/","/x/","/y/")
+run("./asm/","/x/","/y/",spoon_programs)
 diff()

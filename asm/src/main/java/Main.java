@@ -5,11 +5,12 @@ import java.lang.reflect.Method;
 import java.util.Iterator;
 
 public class Main {
-    final static int TRANSFORMERS = 3;
+    static int TRANSFORMERS;
 
     public static void main(String[] args) throws Exception {
         String in = args[0];
         String out = args[1];
+        TRANSFORMERS = Integer.parseInt(args[2]);
         Iterator it = FileUtils.iterateFiles(new File(args[0]), null, false);
         while (it.hasNext()) {
             String fileName = ((File) it.next()).getName();

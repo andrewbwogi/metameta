@@ -5,10 +5,11 @@ import java.lang.reflect.Method;
 import java.util.Iterator;
 
 public class Main {
-    final static int METHODS = 3;
+    static int METHODS;
 
     public static void main(final String args[]) throws Exception {
         String in = args[0];
+        METHODS = Integer.parseInt(args[2]);
         Iterator it = FileUtils.iterateFiles(new File(args[0]), null, false);
         while(it.hasNext()){
             String fileName = ((File) it.next()).getName();
