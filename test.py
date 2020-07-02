@@ -19,6 +19,11 @@ def comp(directory):
     proc = subprocess.Popen(cmd, shell=True)
     proc.communicate()
     
+def install(directory):
+    cmd = 'mvn -f ' + directory + ' install' 
+    proc = subprocess.Popen(cmd, shell=True)
+    proc.communicate()
+    
 def jcomp(directory):
     for folder in os.listdir(directory):
     	for filename in os.listdir(directory + folder):
@@ -72,7 +77,7 @@ def diff():
 spoon_programs = "4"
 make_folders()
 comp("./a/")
-comp("./spoon/")
+install("./spoon/")
 move("./a/target/classes/","./x/")
 run("./spoon/","/a/src/main/java/","/b/",spoon_programs)
 jcomp("./b/")
