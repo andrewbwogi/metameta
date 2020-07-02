@@ -1,4 +1,5 @@
 import spoon.Launcher;
+import spoon.reflect.CtModel;
 import spoon.reflect.code.CtBlock;
 import spoon.reflect.code.CtInvocation;
 import spoon.reflect.code.CtStatement;
@@ -6,6 +7,7 @@ import spoon.reflect.declaration.*;
 import spoon.reflect.factory.CodeFactory;
 import spoon.reflect.factory.Factory;
 import spoon.reflect.factory.MethodFactory;
+import spoon.reflect.factory.TypeFactory;
 import spoon.reflect.reference.CtTypeReference;
 import spoon.support.reflect.code.CtBlockImpl;
 import spoon.support.reflect.declaration.CtParameterImpl;
@@ -19,12 +21,16 @@ public class Constructor {
     CtType type;
     CodeFactory codeFactory;
     MethodFactory methodFactory;
+    TypeFactory typeFactory;
+    String resources;
 
     public Constructor(CtType type){
         this.factory = type.getFactory();
         this.type = type;
         this.codeFactory = factory.Code();
         this.methodFactory = factory.Method();
+        this.typeFactory = factory.Type();
+        resources = "./spoon/src/main/resources/";
     }
 
     public Constructor(){
@@ -32,10 +38,22 @@ public class Constructor {
         this.factory = type.getFactory();
         this.codeFactory = factory.Code();
         this.methodFactory = factory.Method();
+        this.typeFactory = factory.Type();
+        resources = "./spoon/src/main/resources/";
+    }
+
+    public Constructor(boolean test){
+        this();
+        resources = Constructor.class.getClassLoader().getResource("").getPath();
+    }
+
+    public Constructor(CtType type, boolean test){
+        this(type);
+        resources = Constructor.class.getClassLoader().getResource("").getPath();
     }
 
     // int, int -> int
-    public CtMethod constructMethod1(String name) {
+    private CtMethod constructMethod1(String name) {
         Set<ModifierKind> modifiers = Set.of(ModifierKind.PUBLIC);
         CtTypeReference<Integer> intType = new CtTypeReferenceImpl<>();
         intType.setSimpleName("int");
@@ -64,7 +82,7 @@ public class Constructor {
     }
 
     // -> boolean
-    public CtMethod constructMethod2(String name) {
+    private CtMethod constructMethod2(String name) {
         Set<ModifierKind> modifiers = Set.of(ModifierKind.PUBLIC);
         CtTypeReference<Integer> voidType = new CtTypeReferenceImpl<>();
         voidType.setSimpleName("boolean");
@@ -86,7 +104,7 @@ public class Constructor {
     }
 
     // char ->
-    public CtMethod constructMethod3(String name) {
+    private CtMethod constructMethod3(String name) {
         Set<ModifierKind> modifiers = Set.of(ModifierKind.PUBLIC);
         CtTypeReference<Integer> voidType = new CtTypeReferenceImpl<>();
         voidType.setSimpleName("void");
@@ -110,5 +128,33 @@ public class Constructor {
         CtMethod method = constructMethod3(name);
         return codeFactory.createInvocation(factory.createThisAccess(type.getReference(),true),
                 methodFactory.createReference(method),codeFactory.createLiteral('c'));
+    }
+
+    private CtMethod constructMethodX(String name) {
+        CtType t = readClass(resources+"/Methods.java","Methods");
+        Set<CtMethod> methods = t.getMethods();
+        CtMethod retM = null;
+        for(CtMethod m : methods){
+            if(m.getSimpleName().equals(name))
+                retM = m;
+        }
+        type.addMethod(retM);
+        return retM;
+    }
+
+    public CtInvocation constructCall4(String name) {
+        CtMethod method = constructMethodX("method4");
+        method.setSimpleName(name);
+        return codeFactory.createInvocation(factory.createThisAccess(type.getReference(),true),
+                methodFactory.createReference(method),codeFactory.createLiteral(100L));
+    }
+
+    private CtType readClass(String sourcePath,String className){
+        Launcher launcher = new Launcher();
+        launcher.addInputResource(sourcePath);
+        launcher.buildModel();
+        CtModel model = launcher.getModel();
+        CtPackage root = model.getRootPackage();
+        return root.getType(className);
     }
 }
