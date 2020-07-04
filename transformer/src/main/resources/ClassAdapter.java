@@ -21,7 +21,7 @@ public class ClassAdapter extends ClassVisitor {
     public MethodVisitor visitMethod(int a, String name, String d, String s, String[] e) {
         MethodVisitor mv = super.visitMethod(a, name, d, s, e);
         MethodAdapter ma = new MethodAdapter(Opcodes.ASM5, mv, className,d,desc);
-        if (name.equals(modifiedMethod)) {
+        if (name.equals(modifiedMethod) && ((a & ACC_STATIC) != ACC_STATIC)) {
             return ma;
         }
         return mv;

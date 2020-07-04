@@ -1,6 +1,7 @@
 import spoon.reflect.code.*;
 import spoon.reflect.declaration.CtMethod;
 import spoon.reflect.declaration.CtType;
+import spoon.reflect.declaration.ModifierKind;
 import spoon.reflect.factory.CodeFactory;
 import spoon.support.reflect.code.CtReturnImpl;
 
@@ -44,7 +45,17 @@ public class Spoon {
     private void addCallBegin(CtInvocation call, String outputPath, String modifiedMethod) {
         Set<CtMethod> set = type.getMethods();
         for (CtMethod m : set) {
-            if (m.getBody() != null && m.getSimpleName().equals(modifiedMethod))
+
+            // is method static?
+            boolean isStatic = false;
+            Set<ModifierKind> modifierSet = m.getModifiers();
+            for(ModifierKind mk : modifierSet){
+                if(mk == ModifierKind.STATIC)
+                    isStatic = true;
+            }
+
+            // compare names and modifier
+            if (m.getBody() != null && m.getSimpleName().equals(modifiedMethod) && !isStatic)
                 m.getBody().insertBegin(call.clone());
         }
         Utils.writeClass(type, outputPath);
@@ -55,9 +66,17 @@ public class Spoon {
         Set<CtMethod> set = type.getMethods();
         for (CtMethod m : set) {
 
-            // compare return types and names
+            // is method static?
+            boolean isStatic = false;
+            Set<ModifierKind> modifierSet = m.getModifiers();
+            for(ModifierKind mk : modifierSet){
+                if(mk == ModifierKind.STATIC)
+                    isStatic = true;
+            }
+            
+            // compare return types, names and modifier
             if (m.getBody() != null && m.getSimpleName().equals(modifiedMethod) &&
-                    call.getType().getSimpleName().equals(m.getType().getSimpleName())) {
+                    call.getType().getSimpleName().equals(m.getType().getSimpleName()) && !isStatic) {
 
                 // get all return expressions
                 List<CtReturn> returnSet = m.filterChildren((CtReturn t) -> true).list();

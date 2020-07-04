@@ -1,6 +1,6 @@
 public class A1
 {
-    public void method() {
+    public static void method() {
         System.out.println("Hello, World");
     }
 
