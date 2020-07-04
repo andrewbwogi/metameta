@@ -19,8 +19,14 @@ public class ClassAdapter extends ClassVisitor {
 
     @Override
     public MethodVisitor visitMethod(int a, String name, String d, String s, String[] e) {
+
+        // remove abstract method if added method has same signature
+        if ((name.equals(newMethod)) && desc.equals(d) && ((a & (ACC_ABSTRACT)) == (ACC_ABSTRACT)))
+            return null;
         MethodVisitor mv = super.visitMethod(a, name, d, s, e);
         MethodAdapter ma = new MethodAdapter(Opcodes.ASM5, mv, className,d,desc);
+
+        // don't add calls to static methods
         if (name.equals(modifiedMethod) && ((a & ACC_STATIC) != ACC_STATIC)) {
             return ma;
         }
