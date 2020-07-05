@@ -1,5 +1,4 @@
 import spoon.Launcher;
-import spoon.reflect.CtModel;
 import spoon.reflect.code.CtBlock;
 import spoon.reflect.code.CtInvocation;
 import spoon.reflect.code.CtStatement;
@@ -7,7 +6,6 @@ import spoon.reflect.declaration.*;
 import spoon.reflect.factory.CodeFactory;
 import spoon.reflect.factory.Factory;
 import spoon.reflect.factory.MethodFactory;
-import spoon.reflect.factory.TypeFactory;
 import spoon.reflect.reference.CtTypeReference;
 import spoon.support.reflect.code.CtBlockImpl;
 import spoon.support.reflect.declaration.CtParameterImpl;
@@ -118,6 +116,17 @@ public class Constructor {
                 methodFactory.createReference(method),codeFactory.createLiteral('c'));
     }
 
+    public CtInvocation constructCall4(String name) {
+        CtMethod method = constructMethodX("method4");
+        method.setSimpleName(name);
+        return codeFactory.createInvocation(factory.createThisAccess(type.getReference(),true),
+                methodFactory.createReference(method),codeFactory.createLiteral(100L));
+    }
+
+    public CtInvocation constructCall5(String name) {
+        return constructCallX("method5",name);
+    }
+
     private CtMethod constructMethodX(String name) {
         CtType t = Utils.readClass(resources+"/Methods.java","Methods");
         Set<CtMethod> methods = t.getMethods();
@@ -130,14 +139,29 @@ public class Constructor {
         return retM;
     }
 
-    public CtInvocation constructCall4(String name) {
-        CtMethod method = constructMethodX("method4");
-        method.setSimpleName(name);
-        return codeFactory.createInvocation(factory.createThisAccess(type.getReference(),true),
-                methodFactory.createReference(method),codeFactory.createLiteral(100L));
+    private CtInvocation constructCallX(String kind, String name) {
+        CtType t = Utils.readClass(resources+"/Methods.java","Methods");
+        CtMethod method = t.getMethod("invocations");
+        CtInvocation inv = null;
+        for(CtStatement m : method.getBody().getStatements()){
+            inv = (CtInvocation) m;
+            if(inv.getExecutable().getSimpleName().equals(kind))
+                break;
+        }
+        inv.getExecutable().getDeclaration().setSimpleName(name);
+        inv.getExecutable().setSimpleName(name);
+        type.addMethod((CtMethod) inv.getExecutable().getDeclaration());
+        return inv;
     }
 
     public void setResources(String r){
         resources = r;
+    }
+
+    public static void main(final String args[]) {
+        String resources = Spoon.class.getClassLoader().getResource("").getPath();
+        Constructor s = new Constructor();
+        s.setResources(resources);
+        System.out.println(s.constructCall5("newMethod"));
     }
 }
