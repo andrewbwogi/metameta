@@ -127,7 +127,7 @@ public class Constructor {
     }
 
     public CtInvocation constructCall5(String name) {
-        return constructCallX("5", name, new String[]{"customField", "anotherField"});
+        return constructCallX("5", name, new String[]{"customField"});
     }
 
     public CtInvocation constructCall6(String name) {

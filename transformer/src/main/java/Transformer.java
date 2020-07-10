@@ -95,7 +95,7 @@ public class Transformer {
         for (CtConstructor c : set)
             c.getBody().insertBegin(call.clone());
         dummy.addMethod(method);
-        addFields(method,dummy);
+        addFields(method, dummy);
 
         // write type
         String toCompile = resources + "dummy/Empty.java";
@@ -187,7 +187,7 @@ public class Transformer {
         }
 
         // add fields to final program
-        addASMFields(method,clAdapter,methodDefinition);
+        addASMFields(method, clAdapter, methodDefinition);
 
         // write classes
         Utils.writeClass(trans, "./asm/src/main/java/ASMTransformer" + outputName + ".java");
@@ -195,19 +195,19 @@ public class Transformer {
         Utils.writeClass(mtAdapter, "./asm/src/main/java/MethodAdapter" + outputName + ".java", getImports());
     }
 
-    private void addFields(CtMethod method,CtType dummy) {
+    private void addFields(CtMethod method, CtType dummy) {
         FieldFactory fieldFactory = method.getFactory().Field();
         ArrayList<String> nameList = new ArrayList<>();
         List<CtFieldReference> fields = method.filterChildren((CtFieldReference t) -> true).list();
-        for(CtFieldReference r : fields){
-            if(!nameList.contains(r.getSimpleName())) {
-                fieldFactory.create(dummy,r.getModifiers(),r.getType(),r.getSimpleName());
+        for (CtFieldReference r : fields) {
+            if (!nameList.contains(r.getSimpleName())) {
+                fieldFactory.create(dummy, r.getModifiers(), r.getType(), r.getSimpleName());
                 nameList.add(r.getSimpleName());
             }
         }
-        }
+    }
 
-    private void addASMFields(CtMethod method,CtType clAdapter,CtBlock methodDefinition) {
+    private void addASMFields(CtMethod method, CtType clAdapter, CtBlock methodDefinition) {
 
         // create name and desc fields, put them in clAdapter
         Factory factory = method.getFactory();
@@ -215,17 +215,17 @@ public class Transformer {
         CodeFactory codeFactory = factory.Code();
         TypeFactory typeFactory = factory.Type();
         ArrayList<String> nameList = new ArrayList<>();
-        HashMap<String,String> hashMap = new HashMap<>();
+        HashMap<String, String> hashMap = new HashMap<>();
         List<CtNewFieldReference> fields = method.filterChildren((CtNewFieldReference t) -> true).list();
         int i = 0;
-        for(CtNewFieldReference r : fields){
-            if(!nameList.contains(r.getSimpleName())) {
-                fieldFactory.create(clAdapter,Set.of(ModifierKind.PRIVATE),typeFactory.STRING,
-                        "fieldName"+i,codeFactory.createLiteral(r.getSimpleName()));
-                fieldFactory.create(clAdapter,Set.of(ModifierKind.PRIVATE),typeFactory.STRING,
-                        "fieldDesc"+i,codeFactory.createLiteral(getInternalName(r.getType().getSimpleName())));
+        for (CtNewFieldReference r : fields) {
+            if (!nameList.contains(r.getSimpleName())) {
+                fieldFactory.create(clAdapter, Set.of(ModifierKind.PRIVATE), typeFactory.STRING,
+                        "fieldName" + i, codeFactory.createLiteral(r.getSimpleName()));
+                fieldFactory.create(clAdapter, Set.of(ModifierKind.PRIVATE), typeFactory.STRING,
+                        "fieldDesc" + i, codeFactory.createLiteral(getInternalName(r.getType().getSimpleName())));
                 nameList.add(r.getSimpleName());
-                hashMap.put(r.getSimpleName(),"fieldName"+i);
+                hashMap.put(r.getSimpleName(), "fieldName" + i);
                 i++;
                 System.out.println("r: " + r.getSimpleName());
             }
@@ -234,15 +234,15 @@ public class Transformer {
         // set number of fields
         CtMethod addFields = clAdapter.getMethod("addFields");
         List<CtLocalVariable> locals = addFields.filterChildren((CtLocalVariable t) -> true).list();
-        for(CtLocalVariable l : locals){
-            if(l.getSimpleName().equals("NEWFIELDS"))
+        for (CtLocalVariable l : locals) {
+            if (l.getSimpleName().equals("NEWFIELDS"))
                 l.setAssignment(codeFactory.createLiteral(i));
         }
 
         // set class name
         List<CtAssignment> assigns = addFields.filterChildren((CtAssignment t) -> true).list();
-        for(CtAssignment a : assigns){
-            if(a.getAssigned().toString().equals("field")) {
+        for (CtAssignment a : assigns) {
+            if (a.getAssigned().toString().equals("field")) {
                 CtInvocation inv = (CtInvocation) a.getAssignment();
                 CtFieldRead read = (CtFieldRead) inv.getTarget();
                 CtTypeAccess access = (CtTypeAccess) read.getTarget();
@@ -252,46 +252,48 @@ public class Transformer {
 
         // replace expressions in the method definition
         List<CtInvocation> invs = methodDefinition.filterChildren((CtInvocation t) -> true).list();
-        for(CtInvocation in : invs){
-            if(in.getExecutable().getSimpleName().equals("visitFieldInsn")) {
-
-                // replace class names with variables in asmified definition
+        for (CtInvocation in : invs) {
+            if (in.getExecutable().getSimpleName().equals("visitFieldInsn")) {
                 CtLiteral l = (CtLiteral) in.getArguments().get(1);
-                CtVariableRead variableRead = factory.createVariableRead();
-                CtVariableReference variableReference = factory.createLocalVariableReference();
-                variableReference.setSimpleName("className");
-                variableRead.setVariable(variableReference);
-                l.replace(variableRead);
+                if (l.getValue().equals("Empty")) {
 
-                // replace new field names with variables in asmified definition
-                l = (CtLiteral) in.getArguments().get(2);
-                if(nameList.contains(l.getValue())) {
-                    variableRead = factory.createVariableRead();
-                    variableReference = factory.createLocalVariableReference();
-                    variableReference.setSimpleName(hashMap.get(l.getValue()));
+                    // replace class names with variables in asmified definition
+                    CtVariableRead variableRead = factory.createVariableRead();
+                    CtVariableReference variableReference = factory.createLocalVariableReference();
+                    variableReference.setSimpleName("className");
                     variableRead.setVariable(variableReference);
                     l.replace(variableRead);
+
+                    // replace new field names with variables in asmified definition
+                    l = (CtLiteral) in.getArguments().get(2);
+                    if (nameList.contains(l.getValue())) {
+                        variableRead = factory.createVariableRead();
+                        variableReference = factory.createLocalVariableReference();
+                        variableReference.setSimpleName(hashMap.get(l.getValue()));
+                        variableRead.setVariable(variableReference);
+                        l.replace(variableRead);
+                    }
                 }
             }
         }
     }
 
     public static String getInternalName(String name) {
-        if(name.equals("boolean"))
+        if (name.equals("boolean"))
             return "Z";
-        else if(name.equals("bytec"))
+        else if (name.equals("bytec"))
             return "B";
-        else if(name.equals("char"))
+        else if (name.equals("char"))
             return "C";
-        else if(name.equals("double"))
+        else if (name.equals("double"))
             return "D";
-        else if(name.equals("float"))
+        else if (name.equals("float"))
             return "F";
-        else if(name.equals("int"))
+        else if (name.equals("int"))
             return "I";
-        else if(name.equals("long"))
+        else if (name.equals("long"))
             return "J";
-        else if(name.equals("short"))
+        else if (name.equals("short"))
             return "S";
         else
             return "";

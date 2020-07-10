@@ -4,12 +4,14 @@ import java.lang.reflect.Method;
 
 public class Main {
     static int INVOCATIONS;
+    static int FROM;
 
     public static void main(String[] args) throws Exception {
-        INVOCATIONS = Integer.parseInt(args[2]);
+        FROM = Integer.parseInt(args[2]);
+        INVOCATIONS = Integer.parseInt(args[3]);
         Constructor constructor = new Constructor();
         Transformer transformer = new Transformer();
-        for (int i = 1; i <= INVOCATIONS; i++) {
+        for (int i = FROM; i <= INVOCATIONS; i++) {
             Method method = constructor.getClass().getMethod("constructCall" + i, String.class);
             CtInvocation inv = (CtInvocation) method.invoke(constructor, "newMethod");
             transformer.addBegin(inv, "Begin" + i, "method");

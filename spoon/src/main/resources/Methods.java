@@ -4,7 +4,7 @@ public class Methods {
     private int newField1_5;
     private int newField1_6;
     private int newField2_6;
-    private int ooldField;
+    private int oldField;
 
 
     void invocations(){
@@ -32,8 +32,8 @@ public class Methods {
     int method6(int x, int y){
         newField1_6 = x;
         newField2_6 = y;
-        ooldField = newField1_6 + newField2_6;
-        return ooldField;
+        oldField = newField1_6 + newField2_6;
+        return oldField;
     }
 
     // test reference arguments

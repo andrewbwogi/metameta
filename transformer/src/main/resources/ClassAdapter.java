@@ -64,6 +64,7 @@ public class ClassAdapter extends ClassVisitor {
         return cv.visitField(access, name, desc, signature, value);
     }
 
+
     public void addFields() {
         FieldVisitor fv;
         Field field;
