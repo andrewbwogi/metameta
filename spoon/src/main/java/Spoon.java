@@ -114,8 +114,8 @@ public class Spoon {
 
     public static void main(final String args[]) {
         String resources = Spoon.class.getClassLoader().getResource("").getPath();
-        Spoon s = new Spoon(resources + "/A8.java", "A8");
+        Spoon s = new Spoon(resources + "/A2.java", "A2");
         s.setResources(resources);
-        s.addBegin(resources + "/mod/A8.java", 6);
+        s.addBegin(resources + "/mod/A2.java", 6);
     }
 }

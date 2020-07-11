@@ -5,6 +5,7 @@ import spoon.reflect.code.CtStatement;
 import spoon.reflect.declaration.*;
 import spoon.reflect.factory.CodeFactory;
 import spoon.reflect.factory.Factory;
+import spoon.reflect.factory.FieldFactory;
 import spoon.reflect.factory.MethodFactory;
 import spoon.reflect.reference.CtFieldReference;
 import spoon.reflect.reference.CtTypeReference;
@@ -14,23 +15,29 @@ import spoon.support.reflect.declaration.CtParameterImpl;
 import spoon.support.reflect.reference.CtFieldReferenceImpl;
 import spoon.support.reflect.reference.CtTypeReferenceImpl;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
 public class Constructor {
     private Factory factory;
+    private CtType originalType;
     private CtType type;
     private CodeFactory codeFactory;
     private MethodFactory methodFactory;
     private String resources;
 
     public Constructor(CtType type) {
+        //this.originalType = type;
+        //this.type = originalType.clone();
         this.type = type;
         initFields();
     }
 
     public Constructor() {
-        type = Launcher.parseClass("class A {}");
+        //this.originalType = Launcher.parseClass("class A {}");
+        //this.type = originalType.clone();
+        this.type = Launcher.parseClass("class A {}");
         initFields();
     }
 
@@ -162,6 +169,7 @@ public class Constructor {
     }
 
     private CtInvocation constructCallX(String kind, String methodName, String... fieldNames) {
+        //reset();
         CtType t = Utils.readClass(resources + "/Methods.java", "Methods");
         CtMethod invMethod = t.getMethod("invocations");
         CtInvocation inv = null;
@@ -178,6 +186,7 @@ public class Constructor {
         for (CtField f : fieldList) {
             type.addField(f);
         }
+        addMissingFields(defMethod);
         return inv;
     }
 
@@ -216,8 +225,31 @@ public class Constructor {
         return newFields;
     }
 
+    private void addMissingFields(CtMethod method) {
+
+        // get all references not starting with "new"
+        List<CtFieldReference> missingFields = method.filterChildren((CtFieldReference t) ->
+                !t.getSimpleName().startsWith("new")).list();
+        FieldFactory fieldFactory = method.getFactory().Field();
+        List<String> oldFieldNames = this.type.filterChildren((CtField t) -> true).map((CtField t) -> t.getSimpleName()).list();
+
+        // add one field for each of them if they don't exist in type
+        ArrayList<String> processed = new ArrayList<>();
+        for(CtFieldReference f : missingFields){
+            if(!processed.contains(f.getSimpleName()) &&
+            !oldFieldNames.contains(f.getSimpleName())) {
+                processed.add(f.getSimpleName());
+                fieldFactory.create(type,Set.of(ModifierKind.PRIVATE),f.getType(),f.getSimpleName());
+            }
+        }
+    }
+
     public void setResources(String r) {
         resources = r;
+    }
+
+    private void reset() {
+        type = originalType.clone();
     }
 
     public static void main(final String args[]) {

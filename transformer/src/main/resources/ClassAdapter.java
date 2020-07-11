@@ -42,6 +42,7 @@ public class ClassAdapter extends ClassVisitor {
     public void visitEnd() {
         MethodVisitor mv = cv.visitMethod(ACC_PUBLIC, newMethod, desc, null, null);
         addFields();
+        addMissingFields()
         definition(mv);
         mv.visitEnd();
         cv.visitEnd();
@@ -78,6 +79,27 @@ public class ClassAdapter extends ClassVisitor {
                 String desc = (String) field.get(this);
                 fv = cv.visitField(ACC_PRIVATE, name, desc, null, null);
                 fv.visitEnd();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public void addMissingFields() {
+        FieldVisitor fv;
+        Field field;
+        int MISSINGFIELDS = 0; // set number of new fields
+        for(int i = 0; i < MISSINGFIELDS; i++){
+            try {
+                field = ClassAdapter.class.getDeclaredField("missingFieldName"+i); // set classname
+                field.set(this,getFreshName((String)field.get(this)));
+                String name = (String) field.get(this);
+                if(!fieldNames.contains(name)) {
+                    field = ClassAdapter.class.getDeclaredField("missingFieldDesc" + i); // set classname
+                    String desc = (String) field.get(this);
+                    fv = cv.visitField(ACC_PRIVATE, name, desc, null, null);
+                    fv.visitEnd();
+                }
             } catch (Exception e) {
                 e.printStackTrace();
             }

@@ -74,8 +74,8 @@ def diff():
     for key, value in results.items():
         print(key, value)
 
-first_program = "1"
-last_program = "5"
+first_program = "5"
+last_program = "6"
 make_folders()
 comp("./a/")
 install("./spoon/")

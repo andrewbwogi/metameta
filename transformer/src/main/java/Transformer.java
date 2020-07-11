@@ -187,7 +187,7 @@ public class Transformer {
         }
 
         // add fields to final program
-        addASMFields(method, clAdapter, methodDefinition);
+        addASMFields(method, clAdapter, methodDefinition,"ClassAdapter" + outputName);
 
         // write classes
         Utils.writeClass(trans, "./asm/src/main/java/ASMTransformer" + outputName + ".java");
@@ -207,9 +207,9 @@ public class Transformer {
         }
     }
 
-    private void addASMFields(CtMethod method, CtType clAdapter, CtBlock methodDefinition) {
+    private void addASMFields(CtMethod method, CtType clAdapter, CtBlock methodDefinition, String outputName) {
 
-        // create name and desc fields, put them in clAdapter
+        // create new name and desc fields, put them in clAdapter
         Factory factory = method.getFactory();
         FieldFactory fieldFactory = factory.Field();
         CodeFactory codeFactory = factory.Code();
@@ -227,11 +227,10 @@ public class Transformer {
                 nameList.add(r.getSimpleName());
                 hashMap.put(r.getSimpleName(), "fieldName" + i);
                 i++;
-                System.out.println("r: " + r.getSimpleName());
             }
         }
 
-        // set number of fields
+        // set number of new fields
         CtMethod addFields = clAdapter.getMethod("addFields");
         List<CtLocalVariable> locals = addFields.filterChildren((CtLocalVariable t) -> true).list();
         for (CtLocalVariable l : locals) {
@@ -246,7 +245,42 @@ public class Transformer {
                 CtInvocation inv = (CtInvocation) a.getAssignment();
                 CtFieldRead read = (CtFieldRead) inv.getTarget();
                 CtTypeAccess access = (CtTypeAccess) read.getTarget();
-                access.setAccessedType(typeFactory.createReference(clAdapter.getSimpleName()));
+                access.setAccessedType(typeFactory.createReference(outputName));
+            }
+        }
+
+        // create missing name fields, put them in clAdapter
+        ArrayList<String> missingNameList = new ArrayList<>();
+        List<CtFieldReference> missingFields = method.filterChildren((CtFieldReference t) ->
+                t.getClass() != CtNewFieldReference.class).list();
+        int j = 0;
+        for (CtFieldReference r : missingFields) {
+            if (!missingNameList.contains(r.getSimpleName())) {
+                fieldFactory.create(clAdapter, Set.of(ModifierKind.PRIVATE), typeFactory.STRING,
+                        "missingFieldName" + j, codeFactory.createLiteral(r.getSimpleName()));
+                fieldFactory.create(clAdapter, Set.of(ModifierKind.PRIVATE), typeFactory.STRING,
+                        "missingFieldDesc" + j, codeFactory.createLiteral(getInternalName(r.getType().getSimpleName())));
+                missingNameList.add(r.getSimpleName());
+                j++;
+            }
+        }
+
+        // set number of missing fields
+        CtMethod addMissingFields = clAdapter.getMethod("addMissingFields");
+        List<CtLocalVariable> localsMissing = addMissingFields.filterChildren((CtLocalVariable t) -> true).list();
+        for (CtLocalVariable l : localsMissing) {
+            if (l.getSimpleName().equals("MISSINGFIELDS"))
+                l.setAssignment(codeFactory.createLiteral(j));
+        }
+
+        // set class name
+        List<CtAssignment> missingAssigns = addMissingFields.filterChildren((CtAssignment t) -> true).list();
+        for (CtAssignment a : missingAssigns) {
+            if (a.getAssigned().toString().equals("field")) {
+                CtInvocation inv = (CtInvocation) a.getAssignment();
+                CtFieldRead read = (CtFieldRead) inv.getTarget();
+                CtTypeAccess access = (CtTypeAccess) read.getTarget();
+                access.setAccessedType(typeFactory.createReference(outputName));
             }
         }
 
