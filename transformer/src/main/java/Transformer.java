@@ -25,102 +25,60 @@ import java.util.stream.Collectors;
 
 public class Transformer {
     private String resources;
+    private String outputName;
+    private boolean begin;
+    CtClass trans = null;
+    CtClass clAdapter = null;
+    CtClass mtAdapter = null;
 
     public Transformer() {
         resources = "./transformer/src/main/resources/";
     }
 
     public void addBegin(CtInvocation call, String outputName, String modifiedMethod) throws Exception {
-        add(call, outputName, modifiedMethod, true);
+        begin = true;
+        this.outputName = outputName;
+        add(call, modifiedMethod);
     }
 
     public void addEnd(CtInvocation call, String outputName, String modifiedMethod) throws Exception {
-        add(call, outputName, modifiedMethod, false);
+        begin = false;
+        this.outputName = outputName;
+        add(call, modifiedMethod);
     }
 
-    private void add(CtInvocation call, String outputName, String modifiedMethod, boolean begin) throws Exception {
+    private void add(CtInvocation call, String modifiedMethod) throws Exception {
 
         // get method from invocation
-        CtExecutable executable = call.getExecutable().getDeclaration();
-        if (executable.getClass() != CtMethodImpl.class)
-            throw new Exception();
-        CtMethod method = (CtMethod) executable;
+        CtMethod method = getMethod(call);
 
-        // forbid other modifiers than public
-        Set<ModifierKind> modifierSet = method.getModifiers();
-        for (ModifierKind m : modifierSet) {
-            if (m != ModifierKind.PUBLIC)
-                throw new Exception();
-        }
-
-        // forbid exception propagation
-        Set<CtTypeReference> thrownSet = method.getThrownTypes();
-        if (!thrownSet.isEmpty())
-            throw new Exception();
-
-        // get and rename baseclasses
-        String sourcePath = resources + "ASMTransformer.java";
-        CtClass trans = (CtClass) Utils.readClass(sourcePath, "ASMTransformer");
-        trans.setSimpleName(trans.getSimpleName() + outputName);
-        sourcePath = resources + "ClassAdapter.java";
-        CtClass clAdapter = (CtClass) Utils.readClass(sourcePath, "ClassAdapter");
-        clAdapter.setSimpleName(clAdapter.getSimpleName() + outputName);
-        Set<CtConstructor> set = clAdapter.getConstructors();
-        for (CtConstructor c : set)
-            c.setSimpleName(clAdapter.getSimpleName() + outputName);
-        if (begin)
-            sourcePath = resources + "MethodAdapterBegin.java";
-        else
-            sourcePath = resources + "MethodAdapterEnd.java";
-        CtClass mtAdapter = (CtClass) Utils.readClass(sourcePath, "MethodAdapter");
-        mtAdapter.setSimpleName(mtAdapter.getSimpleName() + outputName);
-        set = mtAdapter.getConstructors();
-        for (CtConstructor c : set)
-            c.setSimpleName(mtAdapter.getSimpleName() + outputName);
-
-        // modify type names
-        List<CtTypeReference> typeList = clAdapter.filterChildren((CtTypeReference t) -> t.getSimpleName().equals("MethodAdapter")).list();
-        for (CtTypeReference r : typeList)
-            r.setSimpleName(r.getSimpleName() + outputName);
-        typeList = trans.filterChildren((CtTypeReference t) -> t.getSimpleName().equals("ClassAdapter")).list();
-        for (CtTypeReference r : typeList)
-            r.setSimpleName(r.getSimpleName() + outputName);
-
-        // create dummy type
-        sourcePath = resources + "Empty.java";
-        CtClass dummy = (CtClass) Utils.readClass(sourcePath, "Empty");
-
-        // put method, fields and call into dummy type
-        set = dummy.getConstructors();
-        for (CtConstructor c : set)
-            c.getBody().insertBegin(call.clone());
-        dummy.addMethod(method);
-        addFields(method, dummy);
-
-        // write type
-        String toCompile = resources + "dummy/Empty.java";
-        new File(toCompile).getParentFile().mkdirs();
-        Utils.writeClass(dummy, toCompile);
-
-        // compile type
-        JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
-        compiler.run(null, null, null, toCompile);
-        File classFile = new File(resources + "dummy/Empty.class");
-        FileInputStream is = new FileInputStream(classFile);
+        // create and rename baseclasses
+        createBaseClasses();
 
         // run asmifier and retrieve output
-        CtClass asmified = Launcher.parseClass(toASM(is));
+        CtClass asmified = runASMifier(call,method);
 
-        // get the second block
+        // get definition and call
         List<CtBlock> blockList = asmified.filterChildren((CtBlock block) -> true).list();
         CtBlock methodDefinition = blockList.get(blockList.size() - 1);
-
-        // remove first assignment statement
-        CtStatement assign = methodDefinition.getStatement(0);
-        methodDefinition.removeStatement(assign);
-
-        // get first block
         CtBlock methodCall = blockList.get(blockList.size() - 2);
+
+        // get description
+        String desc = getDesc(methodCall);
+
+        // set base classes
+        setClAdapter(methodDefinition,desc,method,modifiedMethod);
+        setMtAdapter(methodCall,desc);
+
+        // write classes
+        Utils.writeClass(trans, "./asm/src/main/java/ASMTransformer" + outputName + ".java");
+        Utils.writeClass(clAdapter, "./asm/src/main/java/ClassAdapter" + outputName + ".java", getImports());
+        Utils.writeClass(mtAdapter, "./asm/src/main/java/MethodAdapter" + outputName + ".java", getImports());
+    }
+
+    private void setMtAdapter(CtBlock methodCall, String desc) {
+
+        // trim the call statements
         for (int i = 0; i < 10; i++)
             methodCall.removeStatement(methodCall.getStatement(0));
         int sizeCount = methodCall.getStatements().size();
@@ -129,32 +87,9 @@ public class Transformer {
             methodCall.removeStatement(methodCall.getStatement(size - 1));
         }
 
-        // get description
-        List<CtInvocation> invList = methodCall.filterChildren((CtInvocation inv) ->
-                inv.getExecutable().getSimpleName().equals("visitMethodInsn")).list();
-        List descList = (List) invList.get(0).getArguments().stream()
-                .filter(e -> e.toString().contains("(")).collect(Collectors.toList());
-        String desc = descList.get(0).toString();
-        desc = desc.substring(1, desc.length() - 1);
-
-        // add definition
-        List<CtMethod> methodDef = clAdapter.getMethodsByName("definition");
-        methodDef.get(0).setBody(methodDefinition);
-
-        // replace literals
-        Factory factory = dummy.getFactory();
-        List<CtLiteral> literalList = clAdapter.filterChildren((CtLiteral l) ->
-                l.getType().getSimpleName().equals("String") && l.getValue().equals("modifiedMethod")).list();
-        literalList.get(0).replace(factory.createLiteral(modifiedMethod));
-        literalList = clAdapter.filterChildren((CtLiteral l) ->
-                l.getType().getSimpleName().equals("String") && l.getValue().equals("newMethod")).list();
-        literalList.get(0).replace(factory.createLiteral(method.getSimpleName()));
-        literalList = clAdapter.filterChildren((CtLiteral l) ->
-                l.getType().getSimpleName().equals("String") && l.getValue().equals("desc")).list();
-        literalList.get(0).replace(factory.createLiteral(desc));
-
         // modify call
-        literalList = methodCall.filterChildren((CtLiteral l) ->
+        Factory factory = mtAdapter.getFactory();
+        List<CtLiteral> literalList = methodCall.filterChildren((CtLiteral l) ->
                 l.getType().getSimpleName().equals("String") && l.getValue().equals("Empty")).list();
         CtVariableRead variableRead = factory.createVariableRead();
         CtVariableReference variableReference = factory.createLocalVariableReference();
@@ -185,14 +120,96 @@ public class Transformer {
             List<CtMethod> callDef = mtAdapter.getMethodsByName("call");
             callDef.get(0).setBody(methodCall);
         }
+    }
 
-        // add fields to final program
-        addASMFields(method, clAdapter, methodDefinition,"ClassAdapter" + outputName);
+    private String getDesc(CtBlock methodCall) {
+        List<CtInvocation> invList = methodCall.filterChildren((CtInvocation inv) ->
+                inv.getExecutable().getSimpleName().equals("visitMethodInsn")).list();
+        List descList = (List) invList.get(0).getArguments().stream()
+                .filter(e -> e.toString().contains("(")).collect(Collectors.toList());
+        String desc = descList.get(0).toString();
+        return desc.substring(1, desc.length() - 1);
+    }
 
-        // write classes
-        Utils.writeClass(trans, "./asm/src/main/java/ASMTransformer" + outputName + ".java");
-        Utils.writeClass(clAdapter, "./asm/src/main/java/ClassAdapter" + outputName + ".java", getImports());
-        Utils.writeClass(mtAdapter, "./asm/src/main/java/MethodAdapter" + outputName + ".java", getImports());
+    private CtMethod getMethod(CtInvocation call) throws Exception {
+
+        // get method from invocation
+        CtExecutable executable = call.getExecutable().getDeclaration();
+        if (executable.getClass() != CtMethodImpl.class)
+            throw new Exception();
+        CtMethod method = (CtMethod) executable;
+
+        // forbid other modifiers than public
+        Set<ModifierKind> modifierSet = method.getModifiers();
+        for (ModifierKind m : modifierSet) {
+            if (m != ModifierKind.PUBLIC)
+                throw new Exception();
+        }
+
+        // forbid exception propagation
+        Set<CtTypeReference> thrownSet = method.getThrownTypes();
+        if (!thrownSet.isEmpty())
+            throw new Exception();
+
+        return method;
+    }
+
+    private CtClass runASMifier(CtInvocation call, CtMethod method) throws Exception {
+
+        // create dummy type
+        String sourcePath = resources + "Empty.java";
+        CtClass dummy = (CtClass) Utils.readClass(sourcePath, "Empty");
+
+        // put method, fields and call into dummy type
+        Set<CtConstructor> set = dummy.getConstructors();
+        for (CtConstructor c : set)
+            c.getBody().insertBegin(call.clone());
+        dummy.addMethod(method);
+        addFields(method, dummy);
+
+        // write type
+        String toCompile = resources + "dummy/Empty.java";
+        new File(toCompile).getParentFile().mkdirs();
+        Utils.writeClass(dummy, toCompile);
+
+        // compile type
+        JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+        compiler.run(null, null, null, toCompile);
+        File classFile = new File(resources + "dummy/Empty.class");
+        FileInputStream is = new FileInputStream(classFile);
+
+        // run asmifier and retrieve output
+        return Launcher.parseClass(toASM(is));
+    }
+
+    private void createBaseClasses(){
+        String sourcePath = resources + "ASMTransformer.java";
+        trans = (CtClass) Utils.readClass(sourcePath, "ASMTransformer");
+        trans.setSimpleName(trans.getSimpleName() + outputName);
+        sourcePath = resources + "ClassAdapter.java";
+        clAdapter = (CtClass) Utils.readClass(sourcePath, "ClassAdapter");
+        clAdapter.setSimpleName(clAdapter.getSimpleName() + outputName);
+        Set<CtConstructor> set = clAdapter.getConstructors();
+        for (CtConstructor c : set)
+            c.setSimpleName(clAdapter.getSimpleName() + outputName);
+        if (begin)
+            sourcePath = resources + "MethodAdapterBegin.java";
+        else
+            sourcePath = resources + "MethodAdapterEnd.java";
+        mtAdapter = (CtClass) Utils.readClass(sourcePath, "MethodAdapter");
+        mtAdapter.setSimpleName(mtAdapter.getSimpleName() + outputName);
+        set = mtAdapter.getConstructors();
+        for (CtConstructor c : set)
+            c.setSimpleName(mtAdapter.getSimpleName() + outputName);
+
+        // modify type names
+        List<CtTypeReference> typeList = clAdapter.filterChildren((CtTypeReference t) ->
+                t.getSimpleName().equals("MethodAdapter")).list();
+        for (CtTypeReference r : typeList)
+            r.setSimpleName(r.getSimpleName() + outputName);
+        typeList = trans.filterChildren((CtTypeReference t) -> t.getSimpleName().equals("ClassAdapter")).list();
+        for (CtTypeReference r : typeList)
+            r.setSimpleName(r.getSimpleName() + outputName);
     }
 
     private void addFields(CtMethod method, CtType dummy) {
@@ -207,7 +224,34 @@ public class Transformer {
         }
     }
 
-    private void addASMFields(CtMethod method, CtType clAdapter, CtBlock methodDefinition, String outputName) {
+    private void setClAdapter(CtBlock methodDefinition, String desc, CtMethod method, String modifiedMethodName) {
+
+        // remove first assignment statement
+        CtStatement assign = methodDefinition.getStatement(0);
+        methodDefinition.removeStatement(assign);
+
+        // add definition to base class
+        List<CtMethod> methodDef = clAdapter.getMethodsByName("definition");
+        methodDef.get(0).setBody(methodDefinition);
+
+        // replace literals in clAdapter fields
+        Factory factory = clAdapter.getFactory();
+        List<CtLiteral> literalList = clAdapter.filterChildren((CtLiteral l) ->
+                l.getType().getSimpleName().equals("String") && l.getValue().equals("modifiedMethod")).list();
+        literalList.get(0).replace(factory.createLiteral(modifiedMethodName));
+        literalList = clAdapter.filterChildren((CtLiteral l) ->
+                l.getType().getSimpleName().equals("String") && l.getValue().equals("newMethod")).list();
+        literalList.get(0).replace(factory.createLiteral(method.getSimpleName()));
+        literalList = clAdapter.filterChildren((CtLiteral l) ->
+                l.getType().getSimpleName().equals("String") && l.getValue().equals("desc")).list();
+        literalList.get(0).replace(factory.createLiteral(desc));
+
+        // add fields to final program
+        addASMFields(method, methodDefinition);
+    }
+
+    private void addASMFields(CtMethod method, CtBlock methodDefinition) {
+        String outputName = "ClassAdapter" + this.outputName;
 
         // create new name and desc fields, put them in clAdapter
         Factory factory = method.getFactory();
