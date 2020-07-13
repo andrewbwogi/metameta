@@ -1,9 +1,15 @@
 import java.util.ArrayList;
 
 public class Methods {
+    private int newField1_5;
+    private int newField1_6;
+    private int newField2_6;
+    private int oldField;
+
 
     void invocations(){
-        method5(new ArrayList());
+        method5(10,10);
+        method6(10,10);
     }
 
     // new way to construct spoon metaprogram
@@ -16,13 +22,27 @@ public class Methods {
         }
     }
 
+    // test new field
+    int method5(int x, int y){
+        newField1_5 = x;
+        return 0;
+    }
+
+    // test new field
+    int method6(int x, int y){
+        newField1_6 = x;
+        newField2_6 = y;
+        oldField = newField1_6 + newField2_6;
+        return oldField;
+    }
+
     // test reference arguments
-    void method5(ArrayList arrayList){
+    void method7(ArrayList arrayList){
         arrayList.add(5);
     }
 
     // test most primitives
-    long method6(long l, byte b, short s, double d, float f, boolean bo){
+    long method8(long l, byte b, short s, double d, float f, boolean bo){
         if(l<10 && bo) {
             return l;
         }
@@ -30,4 +50,6 @@ public class Methods {
             return 0;
         }
     }
+
+
 }

@@ -8,4 +8,5 @@ x/
 asm/
 !asm/src/main/java/Main.java
 spoon/src/main/resources/
+!spoon/src/main/resources/Methods.java
 transformer/src/main/resources/dummy/
