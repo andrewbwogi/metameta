@@ -3,6 +3,11 @@ import os
 from subprocess import check_output
 import re 
 
+def clean():
+    cmd = 'rm -r ./b ./y ./x ./c'
+    proc = subprocess.Popen(cmd, shell=True)
+    proc.communicate()
+
 def make_folders():
     cmd = 'mkdir ' + './b'
     proc = subprocess.Popen(cmd, shell=True)
@@ -76,6 +81,7 @@ def diff():
 
 first_program = "1"
 last_program = "6"
+clean()
 make_folders()
 comp("./a/")
 install("./spoon/")
