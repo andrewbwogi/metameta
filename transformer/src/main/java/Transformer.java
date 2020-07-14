@@ -368,7 +368,6 @@ public class Transformer {
 
     public static String getInternalName(CtTypeReference ref) {
         String name = ref.getSimpleName();
-        System.out.println(ref.getQualifiedName());
         if (name.equals("boolean"))
             return "Z";
         else if (name.equals("bytec"))

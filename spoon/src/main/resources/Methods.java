@@ -13,6 +13,8 @@ public class Methods {
         method6(10,10);
         method7();
         method8();
+        method9("Hello");
+        method10();
     }
 
     // new way to construct spoon metaprogram
@@ -51,8 +53,16 @@ public class Methods {
         return newField1_8.get(0);
     }
 
+    int method9(String s){
+        return 10;
+    }
+
+    String method10(){
+        return "Hello";
+    }
+
     // test most primitives
-    long method9(long l, byte b, short s, double d, float f, boolean bo){
+    long method20(long l, byte b, short s, double d, float f, boolean bo){
         if(l<10 && bo) {
             return l;
         }

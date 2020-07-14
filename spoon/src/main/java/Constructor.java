@@ -144,6 +144,14 @@ public class Constructor {
         return constructCallX("8", name, new String[]{"customField"});
     }
 
+    public CtInvocation constructCall9(String name) {
+        return constructCallX("9", name);
+    }
+
+    public CtInvocation constructCall10(String name) {
+        return constructCallX("10", name);
+    }
+
     private CtMethod constructMethodX(String name) {
         CtType t = Utils.readClass(resources + "/Methods.java", "Methods");
         Set<CtMethod> methods = t.getMethods();
@@ -154,21 +162,6 @@ public class Constructor {
         }
         type.addMethod(retM);
         return retM;
-    }
-
-    private CtInvocation constructOldCallX(String kind, String name) {
-        CtType t = Utils.readClass(resources + "/Methods.java", "Methods");
-        CtMethod method = t.getMethod("invocations");
-        CtInvocation inv = null;
-        for (CtStatement m : method.getBody().getStatements()) {
-            inv = (CtInvocation) m;
-            if (inv.getExecutable().getSimpleName().equals(kind))
-                break;
-        }
-        inv.getExecutable().getDeclaration().setSimpleName(name);
-        inv.getExecutable().setSimpleName(name);
-        type.addMethod((CtMethod) inv.getExecutable().getDeclaration());
-        return inv;
     }
 
     private CtInvocation constructCallX(String kind, String methodName, String... fieldNames) {
@@ -193,7 +186,7 @@ public class Constructor {
         return inv;
     }
 
-    private List<CtField> constructFields(CtType type, CtMethod method, String kind, String[] names) {
+    private List<CtField> constructFields(CtType type, CtMethod method, String kind, String... names) {
         List<CtField> newFields = type.filterChildren((CtField t) ->
                 t.getSimpleName().startsWith("new") && t.getSimpleName().endsWith("_" + kind)).list();
         List<String> oldFieldNames = this.type.filterChildren((CtField t) -> true).map((CtField t) -> t.getSimpleName()).list();
