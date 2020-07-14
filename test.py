@@ -79,8 +79,8 @@ def diff():
     for key, value in results.items():
         print(key, value)
 
-first_program = "1"
-last_program = "10"
+first_program = "11"
+last_program = "11"
 clean()
 make_folders()
 comp("./a/")

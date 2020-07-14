@@ -1,4 +1,6 @@
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class Methods {
     private int newField1_5;
@@ -15,6 +17,7 @@ public class Methods {
         method8();
         method9("Hello");
         method10();
+        method11(Arrays.asList(1,2));
     }
 
     // new way to construct spoon metaprogram
@@ -59,6 +62,10 @@ public class Methods {
 
     String method10(){
         return "Hello";
+    }
+
+    List method11(List<Integer> a){
+        return a;
     }
 
     // test most primitives
