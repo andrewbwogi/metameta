@@ -21,22 +21,17 @@ import java.util.Set;
 
 public class Constructor {
     private Factory factory;
-    private CtType originalType;
     private CtType type;
     private CodeFactory codeFactory;
     private MethodFactory methodFactory;
     private String resources;
 
     public Constructor(CtType type) {
-        //this.originalType = type;
-        //this.type = originalType.clone();
         this.type = type;
         initFields();
     }
 
     public Constructor() {
-        //this.originalType = Launcher.parseClass("class A {}");
-        //this.type = originalType.clone();
         this.type = Launcher.parseClass("class A {}");
         initFields();
     }
@@ -139,6 +134,14 @@ public class Constructor {
 
     public CtInvocation constructCall6(String name) {
         return constructCallX("6", name, new String[]{"customField", "anotherField"});
+    }
+
+    public CtInvocation constructCall7(String name) {
+        return constructCallX("7", name, new String[]{"customField"});
+    }
+
+    public CtInvocation constructCall8(String name) {
+        return constructCallX("8", name, new String[]{"customField"});
     }
 
     private CtMethod constructMethodX(String name) {
@@ -246,10 +249,6 @@ public class Constructor {
 
     public void setResources(String r) {
         resources = r;
-    }
-
-    private void reset() {
-        type = originalType.clone();
     }
 
     public static void main(final String args[]) {

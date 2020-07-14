@@ -80,7 +80,7 @@ def diff():
         print(key, value)
 
 first_program = "1"
-last_program = "6"
+last_program = "8"
 clean()
 make_folders()
 comp("./a/")

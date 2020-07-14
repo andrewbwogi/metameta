@@ -5,11 +5,14 @@ public class Methods {
     private int newField1_6;
     private int newField2_6;
     private int oldField;
-
+    private ArrayList<Integer> newField1_7;
+    private ArrayList<Integer> newField1_8;
 
     void invocations(){
         method5(10,10);
         method6(10,10);
+        method7();
+        method8();
     }
 
     // new way to construct spoon metaprogram
@@ -37,12 +40,19 @@ public class Methods {
     }
 
     // test reference arguments
-    void method7(ArrayList arrayList){
-        arrayList.add(5);
+    void method7(){
+        newField1_7 = new ArrayList<>();
+        newField1_7.add(5);
+    }
+
+    int method8(){
+        newField1_8 = new ArrayList<>();
+        newField1_8.add(5);
+        return newField1_8.get(0);
     }
 
     // test most primitives
-    long method8(long l, byte b, short s, double d, float f, boolean bo){
+    long method9(long l, byte b, short s, double d, float f, boolean bo){
         if(l<10 && bo) {
             return l;
         }

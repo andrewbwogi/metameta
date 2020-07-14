@@ -277,7 +277,7 @@ public class Transformer {
                 fieldFactory.create(clAdapter, Set.of(ModifierKind.PRIVATE), typeFactory.STRING,
                         "fieldName" + i, codeFactory.createLiteral(r.getSimpleName()));
                 fieldFactory.create(clAdapter, Set.of(ModifierKind.PRIVATE), typeFactory.STRING,
-                        "fieldDesc" + i, codeFactory.createLiteral(getInternalName(r.getType().getSimpleName())));
+                        "fieldDesc" + i, codeFactory.createLiteral(getInternalName(r.getType())));
                 nameList.add(r.getSimpleName());
                 hashMap.put(r.getSimpleName(), "fieldName" + i);
                 i++;
@@ -313,7 +313,7 @@ public class Transformer {
                 fieldFactory.create(clAdapter, Set.of(ModifierKind.PRIVATE), typeFactory.STRING,
                         "missingFieldName" + j, codeFactory.createLiteral(r.getSimpleName()));
                 fieldFactory.create(clAdapter, Set.of(ModifierKind.PRIVATE), typeFactory.STRING,
-                        "missingFieldDesc" + j, codeFactory.createLiteral(getInternalName(r.getType().getSimpleName())));
+                        "missingFieldDesc" + j, codeFactory.createLiteral(getInternalName(r.getType())));
                 missingNameList.add(r.getSimpleName());
                 j++;
             }
@@ -366,7 +366,9 @@ public class Transformer {
         }
     }
 
-    public static String getInternalName(String name) {
+    public static String getInternalName(CtTypeReference ref) {
+        String name = ref.getSimpleName();
+        System.out.println(ref.getQualifiedName());
         if (name.equals("boolean"))
             return "Z";
         else if (name.equals("bytec"))
@@ -384,7 +386,7 @@ public class Transformer {
         else if (name.equals("short"))
             return "S";
         else
-            return "";
+            return "L" + ref.getQualifiedName().replace('.','/') + ";";
     }
 
     private String getImports() {
@@ -401,7 +403,7 @@ public class Transformer {
         String resources = Transformer.class.getClassLoader().getResource("").getPath();
         transformer.setResources(resources);
         Constructor c = new Constructor();
-        c.setResources(resources);
-        transformer.addEnd(c.constructCall1("newMethod"), "Field1", "method");
+        c.setResources("/home/andrewb/Desktop/metameta/spoon/src/main/resources/");
+        transformer.addEnd(c.constructCall7("newMethod"), "Field1", "method");
     }
 }
