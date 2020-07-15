@@ -21,6 +21,7 @@ public class Methods {
         method10();
         method11(Arrays.asList(1,2));
         method12(new Integer[]{1, 1, 1, 1, 1});
+        method13(1,2);
     }
 
     // new way to construct spoon metaprogram
@@ -76,6 +77,10 @@ public class Methods {
         newField2_12 = new int[2];
         newField2_12[0] = i[0];
         return newField1_12;
+    }
+
+    int method13(int x, int y){
+        return x+y;
     }
 
     // test most primitives

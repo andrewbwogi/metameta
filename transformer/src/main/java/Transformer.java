@@ -401,7 +401,8 @@ public class Transformer {
 
     private String getImports() {
         return "import org.objectweb.asm.Opcodes;\n" +
-                "import static org.objectweb.asm.Opcodes.*;\n";
+                "import static org.objectweb.asm.Opcodes.*;\n" +
+                "import org.objectweb.asm.commons.AdviceAdapter;\n";
     }
 
     public void setResources(String r) {

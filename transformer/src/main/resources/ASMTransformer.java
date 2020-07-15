@@ -17,7 +17,7 @@ public class ASMTransformer {
         String className = cr.getClassName();
         ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
         ClassAdapter ca = new ClassAdapter(Opcodes.ASM6,cw,className);
-        cr.accept(ca, 0);
+        cr.accept(ca, org.objectweb.asm.ClassReader.EXPAND_FRAMES);
 
         // output
         b = cw.toByteArray();

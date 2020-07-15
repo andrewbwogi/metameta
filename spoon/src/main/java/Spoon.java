@@ -24,11 +24,17 @@ public class Spoon {
     }
 
     public void addBegin(String outputPath, Integer methodKind) {
-        addCallBegin(getInvocation(methodKind), outputPath, "method");
+        String modMethod = "method";
+        if(methodKind == 13)
+            modMethod = "A3";
+        addCallBegin(getInvocation(methodKind), outputPath, modMethod);
     }
 
     public void addEnd(String outputPath, Integer methodKind) {
-        addCallEnd(getInvocation(methodKind), outputPath, "method");
+        String modMethod = "method";
+        if(methodKind == 13)
+            modMethod = "A3";
+        addCallEnd(getInvocation(methodKind), outputPath, modMethod);
     }
 
     private CtInvocation getInvocation(int methodKind) {

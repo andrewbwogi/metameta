@@ -160,6 +160,10 @@ public class Constructor {
         return constructCallX("12", name, new String[]{"customField", "anotherField"});
     }
 
+    public CtInvocation constructCall13(String name) {
+        return constructCallX("13", name);
+    }
+
     private CtMethod constructMethodX(String name) {
         CtType t = Utils.readClass(resources + "/Methods.java", "Methods");
         Set<CtMethod> methods = t.getMethods();
@@ -173,7 +177,6 @@ public class Constructor {
     }
 
     private CtInvocation constructCallX(String kind, String methodName, String... fieldNames) {
-        //reset();
         CtType t = Utils.readClass(resources + "/Methods.java", "Methods");
         CtMethod invMethod = t.getMethod("invocations");
         CtInvocation inv = null;

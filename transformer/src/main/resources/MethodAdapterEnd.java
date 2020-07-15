@@ -7,7 +7,7 @@ public class MethodAdapter extends MethodVisitor {
     String desc;
     String newDesc;
 
-    public MethodAdapter(int api, MethodVisitor mv, String className,String desc,String newDesc) {
+    public MethodAdapter(int api, org.objectweb.asm.MethodVisitor mv, int a, String name, String className, String desc, String newDesc) {
         super(api, mv);
         this.className = className;
         this.desc = desc;
@@ -18,7 +18,7 @@ public class MethodAdapter extends MethodVisitor {
     public void visitInsn(int opcode) {
         int last1 = desc.lastIndexOf(")");
         int last2 = newDesc.lastIndexOf(")");
-        if ((((opcode >= (IRETURN)) && (opcode <= (RETURN))) || (opcode == (ATHROW)))
+        if ((((opcode >= (IRETURN)) && (opcode <= (RETURN))))
                 && (desc.substring(last1).equals(newDesc.substring(last2)))) {
             call();
         }

@@ -11,12 +11,15 @@ public class Main {
         INVOCATIONS = Integer.parseInt(args[3]);
         Constructor constructor;
         Transformer transformer = new Transformer();
+        String modMethod = "method";
         for (int i = FROM; i <= INVOCATIONS; i++) {
             constructor = new Constructor();
             Method method = constructor.getClass().getMethod("constructCall" + i, String.class);
             CtInvocation inv = (CtInvocation) method.invoke(constructor, "newMethod");
-            transformer.addBegin(inv, "Begin" + i, "method");
-            transformer.addEnd(inv, "End" + i, "method");
+            if(i == 13)
+                modMethod = "A3";
+            transformer.addBegin(inv, "Begin" + i, modMethod);
+            transformer.addEnd(inv, "End" + i, modMethod);
         }
     }
 }
