@@ -11,4 +11,9 @@ public class A9
         return Arrays.asList(1,x);
     }
 
+    public String[][] method(int x,int y) {
+        return new String[][]{{"World"},{"Hello"}};
+    }
+
+
 }

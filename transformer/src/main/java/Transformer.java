@@ -1,3 +1,4 @@
+import org.apache.commons.lang3.StringUtils;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.util.ASMifier;
@@ -368,24 +369,34 @@ public class Transformer {
 
     public static String getInternalName(CtTypeReference ref) {
         String name = ref.getSimpleName();
+        int occurance = StringUtils.countMatches(name, '[');
+        name = StringUtils.remove(name,"[]");
+        String dim = "";
+        for(int i=0;i<occurance;i++)
+            dim += "[";
+        String type = "";
         if (name.equals("boolean"))
-            return "Z";
-        else if (name.equals("bytec"))
-            return "B";
+            type = "Z";
+        else if (name.equals("byte"))
+            type = "B";
         else if (name.equals("char"))
-            return "C";
+            type = "C";
         else if (name.equals("double"))
-            return "D";
+            type = "D";
         else if (name.equals("float"))
-            return "F";
+            type = "F";
         else if (name.equals("int"))
-            return "I";
+            type = "I";
         else if (name.equals("long"))
-            return "J";
+            type = "J";
         else if (name.equals("short"))
-            return "S";
-        else
-            return "L" + ref.getQualifiedName().replace('.','/') + ";";
+            type = "S";
+        else {
+            String qName = ref.getQualifiedName();
+            qName = StringUtils.remove(qName,"[]");
+            type = "L" + qName.replace('.', '/') + ";";
+        }
+        return dim+type;
     }
 
     private String getImports() {
@@ -403,6 +414,6 @@ public class Transformer {
         transformer.setResources(resources);
         Constructor c = new Constructor();
         c.setResources("/home/andrewb/Desktop/metameta/spoon/src/main/resources/");
-        transformer.addEnd(c.constructCall7("newMethod"), "Field1", "method");
+        transformer.addEnd(c.constructCall12("newMethod"), "Field1", "method");
     }
 }

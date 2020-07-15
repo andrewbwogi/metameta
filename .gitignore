@@ -10,3 +10,4 @@ asm/
 spoon/src/main/resources/
 !spoon/src/main/resources/Methods.java
 transformer/src/main/resources/dummy/
+spoon/src/main/java/Methods.java

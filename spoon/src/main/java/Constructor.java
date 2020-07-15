@@ -156,6 +156,10 @@ public class Constructor {
         return constructCallX("11", name);
     }
 
+    public CtInvocation constructCall12(String name) {
+        return constructCallX("12", name, new String[]{"customField", "anotherField"});
+    }
+
     private CtMethod constructMethodX(String name) {
         CtType t = Utils.readClass(resources + "/Methods.java", "Methods");
         Set<CtMethod> methods = t.getMethods();
