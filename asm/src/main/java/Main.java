@@ -21,8 +21,6 @@ public class Main {
             String className = fileName.substring(0,(fileName.length()-6));
             String outputPath;
             for (int i = FROM; i <= TRANSFORMERS; i++) {
-                System.out.println(i);
-                System.out.println(className);
                 Object object = Class.forName("ASMTransformerBegin" + i).newInstance();
                 Method method = object.getClass().getMethod("execute",String.class,String.class);
                 outputPath = out + className + "-Begin" + i + "/" + fileName;

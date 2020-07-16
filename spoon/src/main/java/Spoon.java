@@ -6,6 +6,7 @@ import spoon.reflect.factory.CodeFactory;
 import spoon.support.reflect.code.CtReturnImpl;
 
 import java.lang.reflect.Method;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -25,14 +26,14 @@ public class Spoon {
 
     public void addBegin(String outputPath, Integer methodKind) {
         String modMethod = "method";
-        if(methodKind == 13)
+        if (methodKind == 13)
             modMethod = "A3";
         addCallBegin(getInvocation(methodKind), outputPath, modMethod);
     }
 
     public void addEnd(String outputPath, Integer methodKind) {
         String modMethod = "method";
-        if(methodKind == 13)
+        if (methodKind == 13)
             modMethod = "A3";
         addCallEnd(getInvocation(methodKind), outputPath, modMethod);
     }
@@ -49,59 +50,78 @@ public class Spoon {
     }
 
     private void addCallBegin(CtInvocation call, String outputPath, String modifiedMethod) {
-        Set<CtMethod> set = type.getMethods();
-        for (CtMethod m : set) {
+        Set<CtType> nestedSet = new HashSet<>();
+        nestedSet.addAll(type.getNestedTypes());
+        nestedSet.add(this.type);
+        for (CtType type : nestedSet) {
+            if (type.getModifiers().contains(ModifierKind.STATIC))
+                continue;
+            Set<CtMethod> set = type.getMethods();
+            for (CtMethod met : set) {
 
-            // is method static?
-            boolean isStatic = false;
-            Set<ModifierKind> modifierSet = m.getModifiers();
-            for(ModifierKind mk : modifierSet){
-                if(mk == ModifierKind.STATIC)
-                    isStatic = true;
+                // get all methods, including from inner classes
+                List<CtMethod> methodSet = met.filterChildren((CtMethod t) -> true).list();
+                for (CtMethod m : methodSet) {
+
+                    // is method static?
+                    boolean isStatic = false;
+                    Set<ModifierKind> modifierSet = m.getModifiers();
+                    for (ModifierKind mk : modifierSet) {
+                        if (mk == ModifierKind.STATIC)
+                            isStatic = true;
+                    }
+
+                    // compare names and modifier
+                    if (m.getBody() != null && m.getSimpleName().equals(modifiedMethod) && !isStatic)
+                        m.getBody().insertBegin(call.clone());
+                }
             }
-
-            // compare names and modifier
-            if (m.getBody() != null && m.getSimpleName().equals(modifiedMethod) && !isStatic)
-                m.getBody().insertBegin(call.clone());
         }
         Utils.writeClass(type, outputPath);
         reset();
     }
 
     private void addCallEnd(CtInvocation call, String outputPath, String modifiedMethod) {
-        Set<CtMethod> set = type.getMethods();
-        for (CtMethod m : set) {
+        Set<CtType> nestedSet = new HashSet<>();
+        nestedSet.addAll(type.getNestedTypes());
+        nestedSet.add(this.type);
+        for (CtType type : nestedSet) {
+            if (type.getModifiers().contains(ModifierKind.STATIC))
+                continue;
+            Set<CtMethod> set = type.getMethods();
+            for (CtMethod m : set) {
 
-            // is method static?
-            boolean isStatic = false;
-            Set<ModifierKind> modifierSet = m.getModifiers();
-            for(ModifierKind mk : modifierSet){
-                if(mk == ModifierKind.STATIC)
-                    isStatic = true;
-            }
-            
-            // compare return types, names and modifier
-            if (m.getBody() != null && m.getSimpleName().equals(modifiedMethod) &&
-                    call.getType().getSimpleName().equals(m.getType().getSimpleName()) && !isStatic) {
-
-                // get all return expressions
-                List<CtReturn> returnSet = m.filterChildren((CtReturn t) -> true).list();
-                if (!m.getType().getSimpleName().equals("void")) {
-                    for (CtReturn ret : returnSet) {
-                        CtExpression retExpr = ret.getReturnedExpression();
-
-                        // insert new local variable
-                        CodeFactory codeFactory = type.getFactory().Code();
-                        CtLocalVariable var = codeFactory.createLocalVariable(retExpr.getType(), "newLocal", retExpr);
-                        ret.insertBefore(var);
-
-                        // replace return expression
-                        ret.setReturnedExpression(call.clone());
-                    }
+                // is method static?
+                boolean isStatic = false;
+                Set<ModifierKind> modifierSet = m.getModifiers();
+                for (ModifierKind mk : modifierSet) {
+                    if (mk == ModifierKind.STATIC)
+                        isStatic = true;
                 }
 
-                // if void, don't do anything
-                else {
+                // compare return types, names and modifier
+                if (m.getBody() != null && m.getSimpleName().equals(modifiedMethod) &&
+                        call.getType().getSimpleName().equals(m.getType().getSimpleName()) && !isStatic) {
+
+                    // get all return expressions
+                    List<CtReturn> returnSet = m.filterChildren((CtReturn t) -> true).list();
+                    if (!m.getType().getSimpleName().equals("void")) {
+                        for (CtReturn ret : returnSet) {
+                            CtExpression retExpr = ret.getReturnedExpression();
+
+                            // insert new local variable
+                            CodeFactory codeFactory = type.getFactory().Code();
+                            CtLocalVariable var = codeFactory.createLocalVariable(retExpr.getType(), "newLocal", retExpr);
+                            ret.insertBefore(var);
+
+                            // replace return expression
+                            ret.setReturnedExpression(call.clone());
+                        }
+                    }
+
+                    // if void, don't do anything
+                    else {
+                    }
                 }
             }
         }
@@ -120,8 +140,8 @@ public class Spoon {
 
     public static void main(final String args[]) {
         String resources = Spoon.class.getClassLoader().getResource("").getPath();
-        Spoon s = new Spoon(resources + "/A2.java", "A2");
+        Spoon s = new Spoon(resources + "/A10.java", "A10");
         s.setResources(resources);
-        s.addBegin(resources + "/mod/A2.java", 6);
+        s.addBegin(resources + "/mod/A10.java", 1);
     }
 }
