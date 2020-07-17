@@ -10,12 +10,13 @@ import static org.objectweb.asm.Opcodes.*;
 
 public class ClassAdapter extends ClassVisitor {
     String className;
+    boolean isInner = false;
+    ArrayList<String> fieldNames = new ArrayList();
 
     // replace literals with correct values
     String modifiedMethod = "modifiedMethod";
     String newMethod = "newMethod";
     String desc = "desc";
-    ArrayList<String> fieldNames = new ArrayList();
 
     public ClassAdapter(int api, ClassVisitor cv, String className) {
         super(api, cv);
@@ -38,14 +39,23 @@ public class ClassAdapter extends ClassVisitor {
         return mv;
     }
 
-    @Override
+    @java.lang.Override
     public void visitEnd() {
-        MethodVisitor mv = cv.visitMethod(ACC_PUBLIC, newMethod, desc, null, null);
         addFields();
-        addMissingFields()
-        definition(mv);
-        mv.visitEnd();
+        addMissingFields();
+        if(!isInner) {
+            org.objectweb.asm.MethodVisitor mv = cv.visitMethod(ACC_PUBLIC, newMethod, desc, null, null);
+            definition(mv);
+            mv.visitEnd();
+        }
         cv.visitEnd();
+    }
+
+    @java.lang.Override
+    public void visitInnerClass(java.lang.String name, java.lang.String outerName, java.lang.String innerName, int access) {
+        if(name.equals(className))
+            isInner = true;
+        super.visitInnerClass(name,outerName,innerName,access);
     }
 
     public String getFreshName(String fieldName){
