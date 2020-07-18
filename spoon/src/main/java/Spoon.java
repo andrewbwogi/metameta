@@ -1,9 +1,11 @@
 import spoon.reflect.code.*;
+import spoon.reflect.declaration.CtElement;
 import spoon.reflect.declaration.CtMethod;
 import spoon.reflect.declaration.CtType;
 import spoon.reflect.declaration.ModifierKind;
 import spoon.reflect.factory.CodeFactory;
 import spoon.support.reflect.code.CtReturnImpl;
+import spoon.support.reflect.declaration.CtMethodImpl;
 
 import java.lang.reflect.Method;
 import java.util.HashSet;
@@ -50,78 +52,66 @@ public class Spoon {
     }
 
     private void addCallBegin(CtInvocation call, String outputPath, String modifiedMethod) {
-        Set<CtType> nestedSet = new HashSet<>();
-        nestedSet.addAll(type.getNestedTypes());
-        nestedSet.add(this.type);
-        for (CtType type : nestedSet) {
-            if (type.getModifiers().contains(ModifierKind.STATIC))
-                continue;
-            Set<CtMethod> set = type.getMethods();
-            for (CtMethod met : set) {
+        Set<CtMethod> set = type.getMethods();
+        for (CtMethod m : set) {
 
-                // get all methods, including from inner classes
-                List<CtMethod> methodSet = met.filterChildren((CtMethod t) -> true).list();
-                for (CtMethod m : methodSet) {
-
-                    // is method static?
-                    boolean isStatic = false;
-                    Set<ModifierKind> modifierSet = m.getModifiers();
-                    for (ModifierKind mk : modifierSet) {
-                        if (mk == ModifierKind.STATIC)
-                            isStatic = true;
-                    }
-
-                    // compare names and modifier
-                    if (m.getBody() != null && m.getSimpleName().equals(modifiedMethod) && !isStatic)
-                        m.getBody().insertBegin(call.clone());
-                }
+            // is method static?
+            boolean isStatic = false;
+            Set<ModifierKind> modifierSet = m.getModifiers();
+            for(ModifierKind mk : modifierSet){
+                if(mk == ModifierKind.STATIC)
+                    isStatic = true;
             }
+
+            // compare names and modifier
+            if (m.getBody() != null && m.getSimpleName().equals(modifiedMethod) && !isStatic)
+                m.getBody().insertBegin(call.clone());
         }
         Utils.writeClass(type, outputPath);
         reset();
     }
 
     private void addCallEnd(CtInvocation call, String outputPath, String modifiedMethod) {
-        Set<CtType> nestedSet = new HashSet<>();
-        nestedSet.addAll(type.getNestedTypes());
-        nestedSet.add(this.type);
-        for (CtType type : nestedSet) {
-            if (type.getModifiers().contains(ModifierKind.STATIC))
-                continue;
-            Set<CtMethod> set = type.getMethods();
-            for (CtMethod m : set) {
+        Set<CtMethod> set = type.getMethods();
+        for (CtMethod m : set) {
 
-                // is method static?
-                boolean isStatic = false;
-                Set<ModifierKind> modifierSet = m.getModifiers();
-                for (ModifierKind mk : modifierSet) {
-                    if (mk == ModifierKind.STATIC)
-                        isStatic = true;
+            // is method static?
+            boolean isStatic = false;
+            Set<ModifierKind> modifierSet = m.getModifiers();
+            for(ModifierKind mk : modifierSet){
+                if(mk == ModifierKind.STATIC)
+                    isStatic = true;
+            }
+
+            // compare return types, names and modifier
+            if (m.getBody() != null && m.getSimpleName().equals(modifiedMethod) &&
+                    call.getType().getSimpleName().equals(m.getType().getSimpleName()) && !isStatic) {
+
+                // get all return expressions
+                if (!m.getType().getSimpleName().equals("void")) {
+                    List<CtReturn> returnSet = m.filterChildren((CtReturn t) -> true).list();
+                    
+                    // don't insert in inner classes
+                    for (CtReturn ret : returnSet) {
+                        CtElement parent = ret.getParent();
+                        while(parent.getClass() != CtMethodImpl.class)
+                            parent = parent.getParent();
+                        if(!((CtMethod)parent).getDeclaringType().isTopLevel())
+                            continue;
+                        CtExpression retExpr = ret.getReturnedExpression();
+
+                        // insert new local variable
+                        CodeFactory codeFactory = type.getFactory().Code();
+                        CtLocalVariable var = codeFactory.createLocalVariable(retExpr.getType(), "newLocal", retExpr);
+                        ret.insertBefore(var);
+
+                        // replace return expression
+                        ret.setReturnedExpression(call.clone());
+                    }
                 }
 
-                // compare return types, names and modifier
-                if (m.getBody() != null && m.getSimpleName().equals(modifiedMethod) &&
-                        call.getType().getSimpleName().equals(m.getType().getSimpleName()) && !isStatic) {
-
-                    // get all return expressions
-                    List<CtReturn> returnSet = m.filterChildren((CtReturn t) -> true).list();
-                    if (!m.getType().getSimpleName().equals("void")) {
-                        for (CtReturn ret : returnSet) {
-                            CtExpression retExpr = ret.getReturnedExpression();
-
-                            // insert new local variable
-                            CodeFactory codeFactory = type.getFactory().Code();
-                            CtLocalVariable var = codeFactory.createLocalVariable(retExpr.getType(), "newLocal", retExpr);
-                            ret.insertBefore(var);
-
-                            // replace return expression
-                            ret.setReturnedExpression(call.clone());
-                        }
-                    }
-
-                    // if void, don't do anything
-                    else {
-                    }
+                // if void, don't do anything
+                else {
                 }
             }
         }

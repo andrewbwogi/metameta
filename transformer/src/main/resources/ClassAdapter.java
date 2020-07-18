@@ -30,7 +30,7 @@ public class ClassAdapter extends ClassVisitor {
         if ((name.equals(newMethod)) && desc.equals(d) && ((a & (ACC_ABSTRACT)) == (ACC_ABSTRACT)))
             return null;
         MethodVisitor mv = super.visitMethod(a, name, d, s, e);
-        MethodAdapter ma = new MethodAdapter(Opcodes.ASM7, mv, a, name, className,d,desc);
+        MethodAdapter ma = new MethodAdapter(Opcodes.ASM7, mv, a, name, className,d,desc,isInner);
 
         // don't add calls to static methods
         if (name.equals(modifiedMethod) && ((a & ACC_STATIC) != ACC_STATIC)) {
@@ -41,9 +41,9 @@ public class ClassAdapter extends ClassVisitor {
 
     @java.lang.Override
     public void visitEnd() {
-        addFields();
-        addMissingFields();
         if(!isInner) {
+            addFields();
+            addMissingFields();
             org.objectweb.asm.MethodVisitor mv = cv.visitMethod(ACC_PUBLIC, newMethod, desc, null, null);
             definition(mv);
             mv.visitEnd();
@@ -74,7 +74,6 @@ public class ClassAdapter extends ClassVisitor {
         fieldNames.add(name);
         return cv.visitField(access, name, desc, signature, value);
     }
-
 
     public void addFields() {
         FieldVisitor fv;

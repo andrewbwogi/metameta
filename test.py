@@ -55,13 +55,9 @@ def move2(fr,to):
                 prefix = filename.replace(".class","")
                 target = prefix+suffix   	    
                 cmd = 'mkdir ' + to + target + '/'
-                print(folder)
-                print(prefix+suffix)
-                print(cmd)
                 proc = subprocess.Popen(cmd, shell=True)
                 proc.communicate()
                 cmd = 'mv ' + fr + folder + '/' + filename + ' ' + to + target + '/'
-                print(cmd)
                 proc = subprocess.Popen(cmd, shell=True)
                 proc.communicate()
             else:
@@ -89,7 +85,7 @@ def diff():
         print(key, value)
 
 first_program = "1"
-last_program = "1"
+last_program = "13"
 clean()
 make_folders()
 comp("./a/")
