@@ -1,11 +1,14 @@
 import spoon.reflect.code.*;
+import spoon.reflect.declaration.CtElement;
 import spoon.reflect.declaration.CtMethod;
 import spoon.reflect.declaration.CtType;
 import spoon.reflect.declaration.ModifierKind;
 import spoon.reflect.factory.CodeFactory;
 import spoon.support.reflect.code.CtReturnImpl;
+import spoon.support.reflect.declaration.CtMethodImpl;
 
 import java.lang.reflect.Method;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -25,14 +28,14 @@ public class Spoon {
 
     public void addBegin(String outputPath, Integer methodKind) {
         String modMethod = "method";
-        if(methodKind == 13)
+        if (methodKind == 13)
             modMethod = "A3";
         addCallBegin(getInvocation(methodKind), outputPath, modMethod);
     }
 
     public void addEnd(String outputPath, Integer methodKind) {
         String modMethod = "method";
-        if(methodKind == 13)
+        if (methodKind == 13)
             modMethod = "A3";
         addCallEnd(getInvocation(methodKind), outputPath, modMethod);
     }
@@ -79,15 +82,22 @@ public class Spoon {
                 if(mk == ModifierKind.STATIC)
                     isStatic = true;
             }
-            
+
             // compare return types, names and modifier
             if (m.getBody() != null && m.getSimpleName().equals(modifiedMethod) &&
                     call.getType().getSimpleName().equals(m.getType().getSimpleName()) && !isStatic) {
 
                 // get all return expressions
-                List<CtReturn> returnSet = m.filterChildren((CtReturn t) -> true).list();
                 if (!m.getType().getSimpleName().equals("void")) {
+                    List<CtReturn> returnSet = m.filterChildren((CtReturn t) -> true).list();
+                    
+                    // don't insert in inner classes
                     for (CtReturn ret : returnSet) {
+                        CtElement parent = ret.getParent();
+                        while(parent.getClass() != CtMethodImpl.class)
+                            parent = parent.getParent();
+                        if(!((CtMethod)parent).getDeclaringType().isTopLevel())
+                            continue;
                         CtExpression retExpr = ret.getReturnedExpression();
 
                         // insert new local variable
@@ -120,8 +130,8 @@ public class Spoon {
 
     public static void main(final String args[]) {
         String resources = Spoon.class.getClassLoader().getResource("").getPath();
-        Spoon s = new Spoon(resources + "/A2.java", "A2");
+        Spoon s = new Spoon(resources + "/A10.java", "A10");
         s.setResources(resources);
-        s.addBegin(resources + "/mod/A2.java", 6);
+        s.addBegin(resources + "/mod/A10.java", 1);
     }
 }

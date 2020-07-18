@@ -10,12 +10,13 @@ import static org.objectweb.asm.Opcodes.*;
 
 public class ClassAdapter extends ClassVisitor {
     String className;
+    boolean isInner = false;
+    ArrayList<String> fieldNames = new ArrayList();
 
     // replace literals with correct values
     String modifiedMethod = "modifiedMethod";
     String newMethod = "newMethod";
     String desc = "desc";
-    ArrayList<String> fieldNames = new ArrayList();
 
     public ClassAdapter(int api, ClassVisitor cv, String className) {
         super(api, cv);
@@ -29,7 +30,7 @@ public class ClassAdapter extends ClassVisitor {
         if ((name.equals(newMethod)) && desc.equals(d) && ((a & (ACC_ABSTRACT)) == (ACC_ABSTRACT)))
             return null;
         MethodVisitor mv = super.visitMethod(a, name, d, s, e);
-        MethodAdapter ma = new MethodAdapter(Opcodes.ASM5, mv, a, name, className,d,desc);
+        MethodAdapter ma = new MethodAdapter(Opcodes.ASM7, mv, a, name, className,d,desc,isInner);
 
         // don't add calls to static methods
         if (name.equals(modifiedMethod) && ((a & ACC_STATIC) != ACC_STATIC)) {
@@ -38,14 +39,23 @@ public class ClassAdapter extends ClassVisitor {
         return mv;
     }
 
-    @Override
+    @java.lang.Override
     public void visitEnd() {
-        MethodVisitor mv = cv.visitMethod(ACC_PUBLIC, newMethod, desc, null, null);
-        addFields();
-        addMissingFields()
-        definition(mv);
-        mv.visitEnd();
+        if(!isInner) {
+            addFields();
+            addMissingFields();
+            org.objectweb.asm.MethodVisitor mv = cv.visitMethod(ACC_PUBLIC, newMethod, desc, null, null);
+            definition(mv);
+            mv.visitEnd();
+        }
         cv.visitEnd();
+    }
+
+    @java.lang.Override
+    public void visitInnerClass(java.lang.String name, java.lang.String outerName, java.lang.String innerName, int access) {
+        if(name.equals(className))
+            isInner = true;
+        super.visitInnerClass(name,outerName,innerName,access);
     }
 
     public String getFreshName(String fieldName){
@@ -64,7 +74,6 @@ public class ClassAdapter extends ClassVisitor {
         fieldNames.add(name);
         return cv.visitField(access, name, desc, signature, value);
     }
-
 
     public void addFields() {
         FieldVisitor fv;

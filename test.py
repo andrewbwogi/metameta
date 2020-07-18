@@ -39,6 +39,7 @@ def jcomp(directory):
 def move(fr,to):
     for filename in os.listdir(fr):
         if filename.endswith(".class"): 
+            filename = filename.replace('$','\$')
             cmd = 'mv ' + fr + filename + " " + to
             proc = subprocess.Popen(cmd, shell=True)
             proc.communicate()
@@ -48,11 +49,15 @@ def move(fr,to):
 def move2(fr,to):
     for folder in os.listdir(fr):
         for filename in os.listdir(fr + folder):
-            if filename.endswith('.class'):    	    
-                cmd = 'mkdir ' + to + folder + '/'
+            if filename.endswith('.class'): 
+                filename = filename.replace('$','\$')
+                suffix = '-' + folder.split("-",1)[1] 
+                prefix = filename.replace(".class","")
+                target = prefix+suffix   	    
+                cmd = 'mkdir ' + to + target + '/'
                 proc = subprocess.Popen(cmd, shell=True)
                 proc.communicate()
-                cmd = 'mv ' + fr + folder + '/' + filename + ' ' + to + folder + '/'
+                cmd = 'mv ' + fr + folder + '/' + filename + ' ' + to + target + '/'
                 proc = subprocess.Popen(cmd, shell=True)
                 proc.communicate()
             else:
