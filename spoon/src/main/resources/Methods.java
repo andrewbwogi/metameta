@@ -11,6 +11,10 @@ public class Methods {
     private ArrayList<Integer> newField1_8;
     private String[][] newField1_12;
     private int[] newField2_12;
+    private A10.Inner newField1_14;
+    private A10.StaticNested newField2_14;
+    private A10.Inner oldfieldInner;
+    private A10.StaticNested oldfieldStatic;
 
     void invocations(){
         method5(10,10);
@@ -22,6 +26,8 @@ public class Methods {
         method11(Arrays.asList(1,2));
         method12(new Integer[]{1, 1, 1, 1, 1});
         method13(1,2);
+        //method14(new A10().new Inner(), new A10.StaticNested());
+        method14(new A10().new Inner());
     }
 
     // new way to construct spoon metaprogram
@@ -83,6 +89,24 @@ public class Methods {
         return x+y;
     }
 
+    /*
+    A10.Inner method14(A10.Inner x, A10.StaticNested y){
+        newField1_14 = x;
+        newField2_14 = y;
+        oldfieldInner = newField1_14;
+        oldfieldStatic = newField2_14;
+        return oldfieldInner;
+    }
+*/
+
+    A10.Inner method14(A10.Inner x){
+        newField1_14 = null;
+        newField2_14 = null;
+        oldfieldInner = null;
+        oldfieldStatic = null;
+        return oldfieldInner;
+    }
+
     // test most primitives
     long method20(long l, byte b, short s, double d, float f, boolean bo){
         if(l<10 && bo) {
@@ -92,6 +116,4 @@ public class Methods {
             return 0;
         }
     }
-
-
 }

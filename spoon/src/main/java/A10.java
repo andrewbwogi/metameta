@@ -30,7 +30,7 @@ public class A10<T> {
 
     public class Inner {
         int method(){
-            int x = A10.StaticNested.method();
+            int x = StaticNested.method();
             StaticNested n = new StaticNested();
             x += n.method(5);
             return x;

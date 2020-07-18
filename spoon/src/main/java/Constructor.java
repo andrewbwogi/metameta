@@ -164,6 +164,11 @@ public class Constructor {
         return constructCallX("13", name);
     }
 
+    public CtInvocation constructCall14(String name) {
+        //System.out.println("*************************");
+        return constructCallX("14", name, new String[]{"customField", "anotherField"});
+    }
+
     private CtMethod constructMethodX(String name) {
         CtType t = Utils.readClass(resources + "/Methods.java", "Methods");
         Set<CtMethod> methods = t.getMethods();
@@ -181,10 +186,15 @@ public class Constructor {
         CtMethod invMethod = t.getMethod("invocations");
         CtInvocation inv = null;
         for (CtStatement m : invMethod.getBody().getStatements()) {
+            System.out.println(m);
             inv = (CtInvocation) m;
+            System.out.println(inv.getExecutable().getSimpleName().equals("method" + kind));
             if (inv.getExecutable().getSimpleName().equals("method" + kind))
                 break;
         }
+        System.out.println(inv.getExecutable().getDeclaration());
+        System.out.println(inv.getExecutable() == null);
+        System.out.println("*****************************");
         inv.getExecutable().getDeclaration().setSimpleName(methodName);
         inv.getExecutable().setSimpleName(methodName);
         CtMethod defMethod = (CtMethod) inv.getExecutable().getDeclaration();

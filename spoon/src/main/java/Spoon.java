@@ -64,8 +64,10 @@ public class Spoon {
             }
 
             // compare names and modifier
-            if (m.getBody() != null && m.getSimpleName().equals(modifiedMethod) && !isStatic)
+            if (m.getBody() != null && m.getSimpleName().equals(modifiedMethod) && !isStatic) {
+                System.out.println(m);
                 m.getBody().insertBegin(call.clone());
+            }
         }
         Utils.writeClass(type, outputPath);
         reset();
