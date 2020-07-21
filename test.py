@@ -32,7 +32,7 @@ def install(directory):
 def jcomp(directory):
     for folder in os.listdir(directory):
     	for filename in os.listdir(directory + folder):
-            cmd = 'javac ' + directory + folder + '/' + filename 
+            cmd = 'javac -cp ' + directory + folder + '/ ' + directory + folder + '/' + filename 
             proc = subprocess.Popen(cmd, shell=True)
             proc.communicate()
     
@@ -46,10 +46,25 @@ def move(fr,to):
         else:
             continue
             
+def movesuper(fr,to):
+    for filename in os.listdir(fr):
+        if filename == "A11.java": 
+            for folder in os.listdir(to):
+                if folder.startswith("A12-"): 
+                    cmd = 'cp ' + fr + filename + " " + to + folder
+                    proc = subprocess.Popen(cmd, shell=True)
+                    proc.communicate()
+        else:
+            continue
+            
 def move2(fr,to):
     for folder in os.listdir(fr):
+    
+        # extra loop for inner classes
         for filename in os.listdir(fr + folder):
-            if filename.endswith('.class'): 
+        
+            # special case for test A13 which contains A12 super class
+            if filename.endswith('.class') and (not (folder.startswith("A12-") and filename.startswith("A11"))): 
                 filename = filename.replace('$','\$')
                 suffix = '-' + folder.split("-",1)[1] 
                 prefix = filename.replace(".class","")
@@ -85,13 +100,14 @@ def diff():
         print(key, value)
 
 first_program = "1"
-last_program = "13"
+last_program = "12"
 clean()
 make_folders()
 comp("./a/")
 install("./spoon/")
 move("./a/target/classes/","./x/")
 run("./spoon/","/a/src/main/java/","/b/",first_program,last_program)
+movesuper("./a/src/main/java/","./b/")
 jcomp("./b/")
 move2("./b/","./c/")
 comp("./transformer/")
