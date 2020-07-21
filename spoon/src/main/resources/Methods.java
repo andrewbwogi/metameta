@@ -7,6 +7,7 @@ public class Methods {
     private int newField1_6;
     private int newField2_6;
     private int oldField;
+    public int oldField2;
     private ArrayList<Integer> newField1_7;
     private ArrayList<Integer> newField1_8;
     private String[][] newField1_12;
@@ -25,7 +26,7 @@ public class Methods {
     }
 
     // new way to construct spoon metaprogram
-    long method4(long l){
+    public long method4(long l){
         if(l<10) {
             return l;
         }
@@ -35,56 +36,57 @@ public class Methods {
     }
 
     // test new field
-    int method5(int x, int y){
+    public int method5(int x, int y){
         newField1_5 = x;
         return 0;
     }
 
     // test new field
-    int method6(int x, int y){
+    public int method6(int x, int y){
         newField1_6 = x;
         newField2_6 = y;
         oldField = newField1_6 + newField2_6;
+        oldField2 = oldField;
         return oldField;
     }
 
     // test reference arguments
-    void method7(){
+    public void method7(){
         newField1_7 = new ArrayList<>();
         newField1_7.add(5);
     }
 
-    int method8(){
+    public int method8(){
         newField1_8 = new ArrayList<>();
         newField1_8.add(5);
         return newField1_8.get(0);
     }
 
-    int method9(String s){
+    public int method9(String s){
         return 10;
     }
 
-    String method10(){
+    public String method10(){
         return "Hello";
     }
 
-    List method11(List<Integer> a){
+    public List method11(List<Integer> a){
         return a;
     }
 
-    String[][] method12(Integer[] i){
+    public String[][] method12(Integer[] i){
         newField1_12 = new String[][]{{"Hello" + i[0]},{"World"}};
         newField2_12 = new int[2];
         newField2_12[0] = i[0];
         return newField1_12;
     }
 
-    int method13(int x, int y){
+    public int method13(int x, int y){
         return x+y;
     }
 
     // test most primitives
-    long method20(long l, byte b, short s, double d, float f, boolean bo){
+    public long method20(long l, byte b, short s, double d, float f, boolean bo){
         if(l<10 && bo) {
             return l;
         }
@@ -92,6 +94,4 @@ public class Methods {
             return 0;
         }
     }
-
-
 }
