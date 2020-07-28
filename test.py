@@ -7,6 +7,11 @@ def clean():
     cmd = 'rm -r ./b ./y ./x ./c'
     proc = subprocess.Popen(cmd, shell=True)
     proc.communicate()
+    for filename in os.listdir("./a/src/main/java/"):
+        if filename.endswith(".class"): 
+            cmd = 'rm ./a/src/main/java/' + filename
+            proc = subprocess.Popen(cmd, shell=True)
+            proc.communicate()
 
 def make_folders():
     cmd = 'mkdir ' + './b'
