@@ -7,6 +7,11 @@ def clean():
     cmd = 'rm -r ./b ./y ./x ./c'
     proc = subprocess.Popen(cmd, shell=True)
     proc.communicate()
+    for filename in os.listdir("./a/src/main/java/"):
+        if filename.endswith(".class"): 
+            cmd = 'rm ./a/src/main/java/' + filename
+            proc = subprocess.Popen(cmd, shell=True)
+            proc.communicate()
 
 def make_folders():
     cmd = 'mkdir ' + './b'
@@ -32,7 +37,7 @@ def install(directory):
 def jcomp(directory):
     for folder in os.listdir(directory):
     	for filename in os.listdir(directory + folder):
-            cmd = 'javac -cp ' + directory + folder + '/ ' + directory + folder + '/' + filename 
+            cmd = 'javac -cp ./a/src/main/java/ ' + directory + folder + '/' + filename
             proc = subprocess.Popen(cmd, shell=True)
             proc.communicate()
     
@@ -43,17 +48,6 @@ def move(fr,to):
             cmd = 'mv ' + fr + filename + " " + to
             proc = subprocess.Popen(cmd, shell=True)
             proc.communicate()
-        else:
-            continue
-            
-def movesuper(fr,to):
-    for filename in os.listdir(fr):
-        if filename == "A11.java": 
-            for folder in os.listdir(to):
-                if folder.startswith("A12-"): 
-                    cmd = 'cp ' + fr + filename + " " + to + folder
-                    proc = subprocess.Popen(cmd, shell=True)
-                    proc.communicate()
         else:
             continue
             
@@ -107,7 +101,6 @@ comp("./a/")
 install("./spoon/")
 move("./a/target/classes/","./x/")
 run("./spoon/","/a/src/main/java/","/b/",first_program,last_program)
-movesuper("./a/src/main/java/","./b/")
 jcomp("./b/")
 move2("./b/","./c/")
 comp("./transformer/")

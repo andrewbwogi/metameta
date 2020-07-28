@@ -8,7 +8,6 @@ public class Main {
     static int METHODS;
     static int FROM;
 
-
     public static void main(final String args[]) throws Exception {
         String in = args[0];
         METHODS = Integer.parseInt(args[3]);

@@ -92,6 +92,7 @@ public class Spoon {
                     List<CtReturn> returnSet = m.filterChildren((CtReturn t) -> true).list();
                     
                     // don't insert in inner classes
+                    int i = 0;
                     for (CtReturn ret : returnSet) {
                         CtElement parent = ret.getParent();
                         while(parent.getClass() != CtMethodImpl.class)
@@ -102,11 +103,12 @@ public class Spoon {
 
                         // insert new local variable
                         CodeFactory codeFactory = type.getFactory().Code();
-                        CtLocalVariable var = codeFactory.createLocalVariable(retExpr.getType(), "newLocal", retExpr);
+                        CtLocalVariable var = codeFactory.createLocalVariable(retExpr.getType(), "newLocal"+i, retExpr);
                         ret.insertBefore(var);
 
                         // replace return expression
                         ret.setReturnedExpression(call.clone());
+                        i++;
                     }
                 }
 

@@ -1,3 +1,4 @@
+import javax.swing.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -12,6 +13,7 @@ public class Methods {
     private ArrayList<Integer> newField1_8;
     private String[][] newField1_12;
     private int[] newField2_12;
+    public String oldField3;
 
     void invocations(){
         method5(10,10);
@@ -22,7 +24,7 @@ public class Methods {
         method10();
         method11(Arrays.asList(1,2));
         method12(new Integer[]{1, 1, 1, 1, 1});
-        method13(1,2);
+        method13();
     }
 
     // new way to construct spoon metaprogram
@@ -78,11 +80,8 @@ public class Methods {
         newField1_12 = new String[][]{{"Hello" + i[0]},{"World"}};
         newField2_12 = new int[2];
         newField2_12[0] = i[0];
+        oldField3 = "Hello";
         return newField1_12;
-    }
-
-    public int method13(int x, int y){
-        return x+y;
     }
 
     // test most primitives
