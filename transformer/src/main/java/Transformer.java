@@ -36,16 +36,13 @@ public class Transformer {
         resources = "./transformer/src/main/resources/";
     }
 
-    public void addBegin(CtInvocation call, String outputName, String modifiedMethod) throws Exception {
-        begin = true;
-        this.outputName = outputName;
-        add(call, modifiedMethod);
-    }
-
-    public void addEnd(CtInvocation call, String outputName, String modifiedMethod) throws Exception {
-        begin = false;
-        this.outputName = outputName;
-        add(call, modifiedMethod);
+    public void add(InvocationWrapper inv,int kind) throws Exception {
+        begin = inv.isAddBegin();
+        if(begin)
+            outputName = "Begin" + kind;
+        else
+            outputName = "End" + kind;
+        add(inv.getInvocation(), inv.getModifiedMethod());
     }
 
     private void add(CtInvocation call, String modifiedMethod) throws Exception {
@@ -415,6 +412,6 @@ public class Transformer {
         transformer.setResources(resources);
         Constructor c = new Constructor();
         c.setResources("/home/andrewb/Desktop/metameta/spoon/src/main/resources/");
-        transformer.addEnd(c.constructCall12("newMethod"), "Field1", "method");
+        //transformer.addEnd(c.constructCall12("newMethod"), "Field1", "method");
     }
 }

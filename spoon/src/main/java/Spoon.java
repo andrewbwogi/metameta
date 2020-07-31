@@ -4,11 +4,9 @@ import spoon.reflect.declaration.CtMethod;
 import spoon.reflect.declaration.CtType;
 import spoon.reflect.declaration.ModifierKind;
 import spoon.reflect.factory.CodeFactory;
-import spoon.support.reflect.code.CtReturnImpl;
 import spoon.support.reflect.declaration.CtMethodImpl;
 
 import java.lang.reflect.Method;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -24,6 +22,10 @@ public class Spoon {
         originalType = Utils.readClass(sourcePath, className);
         type = originalType.clone();
         this.constructor = new Constructor(type);
+    }
+
+    public Spoon() {
+        this.constructor = new Constructor();
     }
 
     public void addBegin(String outputPath, Integer methodKind) {
@@ -128,6 +130,12 @@ public class Spoon {
 
     public void setResources(String r) {
         constructor.setResources(r);
+    }
+
+    public InvocationWrapper getInvocation(Integer kind, String modifiedMethod, Boolean addBegin) throws Exception {
+        Method method = constructor.getClass().getMethod("constructCall" + kind, String.class);
+        CtInvocation inv = (CtInvocation) method.invoke(constructor, "newMethod");
+        return new InvocationWrapper(inv,modifiedMethod,addBegin);
     }
 
     public static void main(final String args[]) {
