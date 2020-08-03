@@ -1,6 +1,5 @@
 import org.apache.commons.lang3.StringUtils;
 import org.objectweb.asm.ClassReader;
-import org.objectweb.asm.Type;
 import org.objectweb.asm.util.ASMifier;
 import org.objectweb.asm.util.TraceClassVisitor;
 import spoon.Launcher;
@@ -22,7 +21,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 public class Transformer {
     private String resources;
@@ -47,34 +45,31 @@ public class Transformer {
 
     private void add(CtInvocation call, String modifiedMethod) throws Exception {
 
-        // get method from invocation
+        // get method definition from invocation
         CtMethod method = getMethod(call);
 
-        // create and rename baseclasses
-        createBaseClasses();
+        // create and rename templates
+        createTemplates();
 
         // run asmifier and retrieve output
         CtClass asmified = runASMifier(call,method);
 
-        // get the definition and call
-        List<CtBlock> blockList = asmified.filterChildren((CtBlock block) -> true).list();
-        CtBlock methodDefinition = blockList.get(blockList.size() - 1);
-        CtBlock methodCall = blockList.get(blockList.size() - 2);
+        // get the asmifier generated method definition and invocation
+        CtBlock methodDefinition = getDefinition(asmified);
+        CtBlock methodCall = getCall(asmified);
 
-        // get description of inserted method
+        // get bytecode description of inserted method
         String desc = getDesc(methodCall);
 
-        // set base classes
-        setClAdapter(methodDefinition,desc,method,modifiedMethod);
+        // set the templates into specific metaprograms
+        setClAdapter(method,methodDefinition,desc,modifiedMethod);
         setMtAdapter(methodCall,desc);
 
-        // write classes
-        Utils.writeClass(trans, "./asm/src/main/java/ASMTransformer" + outputName + ".java");
-        Utils.writeClass(clAdapter, "./asm/src/main/java/ClassAdapter" + outputName + ".java", getImports());
-        Utils.writeClass(mtAdapter, "./asm/src/main/java/MethodAdapter" + outputName + ".java", getImports());
+        // write classes to disk
+        write();
     }
 
-    private CtMethod getMethod(CtInvocation call) throws Exception {
+        private CtMethod getMethod(CtInvocation call) throws Exception {
 
         // get method from invocation
         CtExecutable executable = call.getExecutable().getDeclaration();
@@ -96,7 +91,7 @@ public class Transformer {
         return method;
     }
 
-    private void createBaseClasses(){
+    private void createTemplates(){
         String sourcePath = resources + "ASMTransformer.java";
         trans = (CtClass) Utils.readClass(sourcePath, "ASMTransformer");
         trans.setSimpleName(trans.getSimpleName() + outputName);
@@ -187,7 +182,7 @@ public class Transformer {
         return desc.substring(1, desc.length() - 1);
     }
 
-    private void setClAdapter(CtBlock methodDefinition, String desc, CtMethod method, String modifiedMethodName) {
+    private void setClAdapter(CtMethod method, CtBlock methodDefinition, String desc, String modifiedMethodName) {
 
         // remove first assignment statement
         CtStatement assign = methodDefinition.getStatement(0);
@@ -394,6 +389,22 @@ public class Transformer {
             type = "L" + qName.replace('.', '/') + ";";
         }
         return dim+type;
+    }
+
+    private CtBlock getDefinition(CtClass asmified) {
+        List<CtBlock> blockList = asmified.filterChildren((CtBlock block) -> true).list();
+        return blockList.get(blockList.size() - 1);
+    }
+
+    private CtBlock getCall(CtClass asmified) {
+        List<CtBlock> blockList = asmified.filterChildren((CtBlock block) -> true).list();
+        return blockList.get(blockList.size() - 2);
+    }
+
+    private void write() {
+        Utils.writeClass(trans, "./asm/src/main/java/ASMTransformer" + outputName + ".java");
+        Utils.writeClass(clAdapter, "./asm/src/main/java/ClassAdapter" + outputName + ".java", getImports());
+        Utils.writeClass(mtAdapter, "./asm/src/main/java/MethodAdapter" + outputName + ".java", getImports());
     }
 
     private String getImports() {
