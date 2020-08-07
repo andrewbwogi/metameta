@@ -5,7 +5,6 @@ public class A3 {
 
     // field and reference tests
     private int oldField = 3;
-    private int oldField2;
     private String oldField3;
 
     public String method(String s) {
