@@ -30,15 +30,11 @@ public class Spoon {
 
     public void addBegin(String outputPath, Integer methodKind) {
         String modMethod = "method";
-        if (methodKind == 13)
-            modMethod = "A3";
         addCallBegin(getInvocation(methodKind), outputPath, modMethod);
     }
 
     public void addEnd(String outputPath, Integer methodKind) {
         String modMethod = "method";
-        if (methodKind == 13)
-            modMethod = "A3";
         addCallEnd(getInvocation(methodKind), outputPath, modMethod);
     }
 

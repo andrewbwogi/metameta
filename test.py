@@ -94,7 +94,7 @@ def diff():
         print(key, value)
 
 first_program = "1"
-last_program = "12"
+last_program = "13"
 clean()
 make_folders()
 comp("./a/")

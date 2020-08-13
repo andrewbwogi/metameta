@@ -188,13 +188,22 @@ public class Transformer {
         CtStatement assign = methodDefinition.getStatement(0);
         methodDefinition.removeStatement(assign);
 
+        // modify definition
+        Factory factory = clAdapter.getFactory();
+        List<CtLiteral> literalList = methodDefinition.filterChildren((CtLiteral l) ->
+                l.getType().getSimpleName().equals("String") && l.getValue().equals("Empty")).list();
+        CtVariableRead variableRead = factory.createVariableRead();
+        CtVariableReference variableReference = factory.createLocalVariableReference();
+        variableReference.setSimpleName("className");
+        variableRead.setVariable(variableReference);
+        literalList.get(0).replace(variableRead);
+
         // add definition to base class
         List<CtMethod> methodDef = clAdapter.getMethodsByName("definition");
         methodDef.get(0).setBody(methodDefinition);
 
         // replace literals in clAdapter fields
-        Factory factory = clAdapter.getFactory();
-        List<CtLiteral> literalList = clAdapter.filterChildren((CtLiteral l) ->
+        literalList = clAdapter.filterChildren((CtLiteral l) ->
                 l.getType().getSimpleName().equals("String") && l.getValue().equals("modifiedMethod")).list();
         literalList.get(0).replace(factory.createLiteral(modifiedMethodName));
         literalList = clAdapter.filterChildren((CtLiteral l) ->
