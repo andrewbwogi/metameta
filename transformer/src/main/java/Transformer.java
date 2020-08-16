@@ -34,9 +34,9 @@ public class Transformer {
         resources = "./transformer/src/main/resources/";
     }
 
-    public void add(InvocationWrapper inv,int kind) throws Exception {
+    public void add(InvocationWrapper inv, int kind) throws Exception {
         begin = inv.isAddBegin();
-        if(begin)
+        if (begin)
             outputName = "Begin" + kind;
         else
             outputName = "End" + kind;
@@ -52,7 +52,7 @@ public class Transformer {
         createTemplates();
 
         // run asmifier and retrieve output
-        CtClass asmified = runASMifier(call,method);
+        CtClass asmified = runASMifier(call, method);
 
         // get the asmifier generated method definition and invocation
         CtBlock methodDefinition = getDefinition(asmified);
@@ -62,14 +62,14 @@ public class Transformer {
         String desc = getDesc(methodCall);
 
         // set the templates into specific metaprograms
-        setClAdapter(method,methodDefinition,desc,modifiedMethod);
-        setMtAdapter(methodCall,desc);
+        setClAdapter(method, methodDefinition, desc, modifiedMethod);
+        setMtAdapter(methodCall, desc);
 
         // write classes to disk
         write();
     }
 
-        private CtMethod getMethod(CtInvocation call) throws Exception {
+    private CtMethod getMethod(CtInvocation call) throws Exception {
 
         // get method from invocation
         CtExecutable executable = call.getExecutable().getDeclaration();
@@ -91,7 +91,7 @@ public class Transformer {
         return method;
     }
 
-    private void createTemplates(){
+    private void createTemplates() {
         String sourcePath = resources + "ASMTransformer.java";
         trans = (CtClass) Utils.readClass(sourcePath, "ASMTransformer");
         trans.setSimpleName(trans.getSimpleName() + outputName);
@@ -175,8 +175,8 @@ public class Transformer {
         List<CtInvocation> invList = methodCall.filterChildren((CtInvocation inv) ->
                 inv.getExecutable().getSimpleName().equals("visitMethodInsn")).list();
         String desc = "";
-        for(CtInvocation i : invList) {
-            if(i.getArguments().get(1).toString().equals("\"Empty\""))
+        for (CtInvocation i : invList) {
+            if (i.getArguments().get(1).toString().equals("\"Empty\""))
                 desc = i.getArguments().get(3).toString();
         }
         return desc.substring(1, desc.length() - 1);
@@ -196,7 +196,8 @@ public class Transformer {
         CtVariableReference variableReference = factory.createLocalVariableReference();
         variableReference.setSimpleName("className");
         variableRead.setVariable(variableReference);
-        literalList.get(0).replace(variableRead);
+        for (CtLiteral l : literalList)
+            l.replace(variableRead);
 
         // add definition to base class
         List<CtMethod> methodDef = clAdapter.getMethodsByName("definition");
@@ -344,25 +345,15 @@ public class Transformer {
         List<CtInvocation> invs = methodDefinition.filterChildren((CtInvocation t) -> true).list();
         for (CtInvocation in : invs) {
             if (in.getExecutable().getSimpleName().equals("visitFieldInsn")) {
-                CtLiteral l = (CtLiteral) in.getArguments().get(1);
-                if (l.getValue().equals("Empty")) {
-
-                    // replace class names with variables in asmified definition
+                
+                // replace new field names with variables in asmified definition
+                CtLiteral l = (CtLiteral) in.getArguments().get(2);
+                if (nameList.contains(l.getValue())) {
                     CtVariableRead variableRead = factory.createVariableRead();
                     CtVariableReference variableReference = factory.createLocalVariableReference();
-                    variableReference.setSimpleName("className");
+                    variableReference.setSimpleName(hashMap.get(l.getValue()));
                     variableRead.setVariable(variableReference);
                     l.replace(variableRead);
-
-                    // replace new field names with variables in asmified definition
-                    l = (CtLiteral) in.getArguments().get(2);
-                    if (nameList.contains(l.getValue())) {
-                        variableRead = factory.createVariableRead();
-                        variableReference = factory.createLocalVariableReference();
-                        variableReference.setSimpleName(hashMap.get(l.getValue()));
-                        variableRead.setVariable(variableReference);
-                        l.replace(variableRead);
-                    }
                 }
             }
         }
@@ -371,9 +362,9 @@ public class Transformer {
     public static String getInternalName(CtTypeReference ref) {
         String name = ref.getSimpleName();
         int occurance = StringUtils.countMatches(name, '[');
-        name = StringUtils.remove(name,"[]");
+        name = StringUtils.remove(name, "[]");
         String dim = "";
-        for(int i=0;i<occurance;i++)
+        for (int i = 0; i < occurance; i++)
             dim += "[";
         String type = "";
         if (name.equals("boolean"))
@@ -394,10 +385,10 @@ public class Transformer {
             type = "S";
         else {
             String qName = ref.getQualifiedName();
-            qName = StringUtils.remove(qName,"[]");
+            qName = StringUtils.remove(qName, "[]");
             type = "L" + qName.replace('.', '/') + ";";
         }
-        return dim+type;
+        return dim + type;
     }
 
     private CtBlock getDefinition(CtClass asmified) {
