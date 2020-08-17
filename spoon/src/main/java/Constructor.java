@@ -129,39 +129,39 @@ public class Constructor {
     }
 
     public CtInvocation constructCall5(String name) {
-        return constructCallX("5", name, new String[]{"customField"});
+        return constructInvocationX("5", name, new String[]{"customField"});
     }
 
     public CtInvocation constructCall6(String name) {
-        return constructCallX("6", name, new String[]{"customField", "anotherField"});
+        return constructInvocationX("6", name, new String[]{"customField", "anotherField"});
     }
 
     public CtInvocation constructCall7(String name) {
-        return constructCallX("7", name, new String[]{"customField"});
+        return constructInvocationX("7", name, new String[]{"customField"});
     }
 
     public CtInvocation constructCall8(String name) {
-        return constructCallX("8", name, new String[]{"customField"});
+        return constructInvocationX("8", name, new String[]{"customField"});
     }
 
     public CtInvocation constructCall9(String name) {
-        return constructCallX("9", name);
+        return constructInvocationX("9", name);
     }
 
     public CtInvocation constructCall10(String name) {
-        return constructCallX("10", name);
+        return constructInvocationX("10", name);
     }
 
     public CtInvocation constructCall11(String name) {
-        return constructCallX("11", name);
+        return constructInvocationX("11", name);
     }
 
     public CtInvocation constructCall12(String name) {
-        return constructCallX("12", name, new String[]{"customField", "anotherField"});
+        return constructInvocationX("12", name, new String[]{"customField", "anotherField"});
     }
 
     public CtInvocation constructCall13(String name) {
-        return constructCallX("13", name);
+        return constructInvocationX("13", name);
     }
 
     private CtMethod constructMethodX(String name) {
@@ -176,7 +176,7 @@ public class Constructor {
         return retM;
     }
 
-    private CtInvocation constructCallX(String kind, String methodName, String... fieldNames) {
+    private CtInvocation constructInvocationX(String kind, String methodName, String... fieldNames) {
         CtType t = Utils.readClass(resources + "/Methods.java", "Methods");
         CtMethod invMethod = t.getMethod("invocations");
         CtInvocation inv = null;

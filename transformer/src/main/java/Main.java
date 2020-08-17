@@ -14,12 +14,12 @@ public class Main {
         String modMethod = "method";
         for (int i = FROM; i <= INVOCATIONS; i++) {
             spoon = new Spoon();
-            Method method = spoon.getClass().getMethod("getInvocation", Integer.class, String.class, Boolean.class);
-            InvocationWrapper inv = (InvocationWrapper) method.invoke(spoon, i, modMethod, true);
+            Method method = spoon.getClass().getMethod("getWrapper", Integer.class, String.class, Boolean.class);
+            Wrapper inv = (Wrapper) method.invoke(spoon, i, modMethod, true);
             transformer.add(inv,i);
 
             spoon = new Spoon();
-            inv = (InvocationWrapper) method.invoke(spoon, i, modMethod, false);
+            inv = (Wrapper) method.invoke(spoon, i, modMethod, false);
             transformer.add(inv,i);
         }
     }

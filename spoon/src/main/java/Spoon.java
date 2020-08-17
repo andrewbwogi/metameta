@@ -128,10 +128,10 @@ public class Spoon {
         constructor.setResources(r);
     }
 
-    public InvocationWrapper getInvocation(Integer kind, String modifiedMethod, Boolean addBegin) throws Exception {
+    public Wrapper getWrapper(Integer kind, String modifiedMethod, Boolean addBegin) throws Exception {
         Method method = constructor.getClass().getMethod("constructCall" + kind, String.class);
         CtInvocation inv = (CtInvocation) method.invoke(constructor, "newMethod");
-        return new InvocationWrapper(inv,modifiedMethod,addBegin);
+        return new Wrapper(inv,modifiedMethod,addBegin);
     }
 
     public static void main(final String args[]) {

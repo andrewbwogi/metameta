@@ -34,7 +34,7 @@ public class Transformer {
         resources = "./transformer/src/main/resources/";
     }
 
-    public void add(InvocationWrapper inv, int kind) throws Exception {
+    public void add(Wrapper inv, int kind) throws Exception {
         begin = inv.isAddBegin();
         if (begin)
             outputName = "Begin" + kind;
